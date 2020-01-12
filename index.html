@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="icon" href="img/icon.jpg">
+        <link href="https://fonts.googleapis.com/css?family=Exo+2&display=swap" rel="stylesheet">
+        <title>TensorLearn</title>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.15.0/d3.js"></script>
+        <script src="/src/js/predator.js"></script>
+        <script src="/src/js/dom.js"></script>
+    </head>
+    <body>
+
+        <style>
+
+            .section > span {
+                display: block;
+                font-family: "Lucida Console", "Monaco", monospace;
+                margin-bottom: .3rem;
+                color: black;
+                width: 100px;
+                padding: .3rem;
+                padding-left: 0;
+                font-size: 1.2rem;
+                border-radius: 5px;
+            }
+
+            input {
+                font-family: "Lucida Console", "Monaco", monospace;
+                font-weight: bold;
+            }
+            
+            input[type="button"] {
+                background: #ff9933;
+                border: 3px solid #e67300;
+                color: white;
+                box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+                padding: .6rem 3rem;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color .3s;
+            }
+
+            input[type="button"]:hover {
+                background-color: #e67300;
+            }
+
+            input[type="text"] {
+                background: transparent;
+                border: 4px dashed #ff9933;
+                padding: .6rem 1rem;
+                border-radius: 5px;
+            }
+
+            .mb-s {
+                margin-bottom: 1rem;
+            }
+
+            .mb-b {
+                margin-bottom: .3rem;
+            }
+
+            .block {
+                display: block;
+            }
+
+            #loader {
+                opacity: 0;
+                position: absolute;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                top: 0;
+                margin: auto;
+                z-index: -1;
+            }
+
+            #display {
+                font-family: "Lucida Console", "Monaco", monospace;
+                font-size: 1.5rem;
+                min-width: 200px;
+                padding: 1rem;
+                border: 2px solid #ff9933;
+                display: inline-block;
+                border-radius: 5px;
+            }
+
+            #display > span.result {
+                color: green;
+                text-decoration: underline;
+            }
+
+            #display > span.input {
+                color: blueviolet;
+                text-decoration: underline;
+            }
+
+            #display > span.name {
+                color: #ff9933;
+                text-decoration: underline;
+            }
+
+            span[class*="model-"] {
+                cursor: pointer;
+                text-decoration: underline;
+                color: black;
+                transition: color .3s;
+            }
+
+            span[class*="model-"]:hover {
+                color: #ff9933;
+            }
+
+            #main {
+                transition: opacity .5s;
+                z-index: 1;
+            }
+
+            #draggable {
+                position: absolute;
+                text-align: center;
+                min-width: 200px;
+                padding: 1rem;
+                border-radius: 5px;
+                cursor: grab;
+                height: auto;
+                border: 2px solid #e67300;
+                box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+                background: #ff9933;
+                font-family: "Lucida Console", "Monaco", monospace;
+                color: white;
+                user-select: none;
+                transform: rotate3d(1, 1, 1, 120deg);
+                transition: transform .3s;
+            }
+
+            #draggable.shown {
+                transform: rotate3d(1, 1, 1, 0deg);
+            }
+
+            #draggable .name {
+                font-size: 1.2rem;
+                font-weight: bold;
+            }
+
+            #draggable span {
+                display: block;
+            }
+
+            #draggable span:nth-child(even) {
+                margin-top: 1rem;
+                color: #994d00;
+                margin-bottom: .3rem;
+                font-weight: bold;
+                border-radius: 5px;
+                padding: .2rem;
+                text-decoration: underline;
+            }
+
+            #draggable span:nth-child(odd) {
+                color: white;
+            }
+
+        </style>
+
+        <main id="main">
+            <img src="img/tflogo.png" width="300">
+
+            <div id="train" class="section mb-s">
+                <span>Train</span>
+                <input type="text" id="mname" placeholder="Model Name">
+                <input type="button" value="Train" onClick="domTrain(gid('mname').value)">
+            </div>
+
+            <div id="predict" class="section mb-s">
+                <span>Predict</span>
+                <input type="text" id="hsize" placeholder="Value">
+                <input type="button" value="Predict Value" onClick="makeprediction(gid('hsize').value)">
+            </div>
+
+            <div class="section mb-s">
+                <span>Actions</span>
+                <input type="button" class="mb-b" value="Render Model" onClick="renderModel()">
+                <input type="button" class="mb-b block" value="Toggle Visor" onClick="tfvis.visor().toggle()">
+                <input type="button" class="mb-b block" value="List Models" onClick="listModels()">
+                <input type="button" class="block" value="Session Info" onClick="alert(JSON.stringify(pred.config))">
+            </div>
+
+            <div id="display"></div>
+            <div id="draggable"></div>
+        </main>
+
+        <img id="loader" src="img/loader.gif">
+        
+        <script>
+            
+            const pred = new predator({
+                neural: {
+                    model: {
+                        epochs: 15,
+                        loss: 'meanSquaredError',
+                        optimizer: 'adam',
+                    },
+                    layers: {
+                        bias: true,
+                        activation: 'sigmoid',
+                        amount: 3,
+                        nodes: 10,
+                        tensorShape: [predator.max(1), 1],
+                    },
+                },
+                system: {
+                    params: ['sqft_living', 'price'],
+                    csvPath: `../csv/dataset.csv`,
+                }
+            });
+            
+            dispatchHandlers();
+
+        </script>
+
+    </body>
+</html>
