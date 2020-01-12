@@ -170,6 +170,9 @@ const predator = function(config) {
 
 /**
  * Return length of an input.
+ * 
+ * @param divide - Divisor
+ * @returns Object containing operation information
  */
 predator.max = function(divide = 1) {
     return {
@@ -249,7 +252,6 @@ predator.createModel = (layers, optimizerName, loss) => {
  * @returns Training data
  */
 predator.train = async (model, epochs, { trainFeatureTensor, trainLabelTensor }) => {
-
     const { onBatchEnd, onEpochEnd } = tfvis.show.fitCallbacks(
         { name: "Training Performance" },
         ['loss']
@@ -313,7 +315,6 @@ predator.tensorFromArray = async (shape, arr, field, instance) => {
  * @param shape - Tensor shape
  * @param points - Reference points array
  * @param saveTo - Instance where to save modifying parameters
- * 
  * @returns Adjusted tensor shape
  */
 predator.adjustTensorShape = (shape, points, saveTo) => {
@@ -374,6 +375,7 @@ predator.getModelByName = async (modelName) => {
  * 
  * @param modelData - Object containing model information
  * @param noModelCallback - Function to execute if model was not found
+ * @returns Tensorflow model
  */
 predator.unpackModel = async (modelData, noModelCallback) => {
     if (!modelData.model) {
