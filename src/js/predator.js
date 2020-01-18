@@ -27,7 +27,7 @@ const predator = function(config) {
     this.points = [];
 
     /**
-     * Combine multiple generic plots. YES
+     * Combine multiple generic plots.
      * 
      * @param modelData - Object containing model name or model itself
      * @param shouldAggregate - If should simulate synthetic state
@@ -57,7 +57,7 @@ const predator = function(config) {
     }
 
     /**
-     * Generate prediction points that form a line. YES
+     * Generate prediction points that form a line.
      * 
      * @param modelData - Object containing model name or model itself
      * @returns Array of points
@@ -88,7 +88,7 @@ const predator = function(config) {
     }
 
     /**
-     * Attempt to make a prediction. YES
+     * Attempt to make a prediction.
      * 
      * @param modelData - Object containing model name or model itself
      * @param values - Feature values
@@ -206,7 +206,7 @@ predator.max = (divide = 1) => {
 }
 
 /**
- * Normalize tensor values (downscaling). YES
+ * Normalize tensor values (downscaling).
  * 
  * @param tensor - Tensor object
  * @param override - Use min and max from this overriding tensor
@@ -219,7 +219,7 @@ predator.normalizeTensor = (tensor, override) => {
 }
 
 /**
- * Denormalize tensor values (upscaling). YES
+ * Denormalize tensor values (upscaling).
  * 
  * @param tensor - Tensor object
  * @param override - Use min and max from this overriding tensor
@@ -232,7 +232,7 @@ predator.denormalizeTensor = (tensor, override) => {
 }
 
 /**
- * Create tsfjs model used for training and testing. YES
+ * Create tsfjs model used for training and testing.
  * 
  * @param layers - Array of objects defining layers
  * @param optimizerName - String name of optimizer function
@@ -257,7 +257,7 @@ predator.createModel = (layers, optimizerName, loss) => {
 }
 
 /**
- * Engage model training phase. YES
+ * Engage model training phase.
  * 
  * @param model - Tsfjs model reference
  * @param epochs - Amount of epochs
@@ -279,7 +279,7 @@ predator.train = async (model, epochs, { trainFeatureTensor, trainLabelTensor })
 }
 
 /**
- * Read CSV from gived URL. YES
+ * Read CSV from gived URL.
  * 
  * @param url - Path to CSV
  * @param params - If present, override local params
@@ -321,7 +321,7 @@ predator.spreadRecordFields = (record, params) => {
 }
 
 /**
- * Create tsfjs Tensor object from array. YES
+ * Create tsfjs Tensor object from array.
  * 
  * @param shape - Shape of the tensor
  * @param arr - Input array of objects 
@@ -345,7 +345,7 @@ predator.tensorFromArray = async (shape, arr, field, instance) => {
 }
 
 /**
- * Adjust tensor dimensions. YES
+ * Adjust tensor dimensions.
  * 
  * @param shape - Tensor shape
  * @param points - Reference points array
@@ -365,7 +365,7 @@ predator.adjusttensorShapes = (shape, points, saveTo) => {
 }
 
 /**
- * Save tsfjs model into local storage. YES
+ * Save tsfjs model into local storage.
  * 
  * @param model - Tsfjs model reference 
  * @param modelName - Model name
@@ -378,7 +378,7 @@ predator.saveModel = async (model, modelName, config) => {
 }
 
 /**
- * Attempt to retrieve model training configuration. YES
+ * Attempt to retrieve model training configuration.
  * 
  * @param modelName - Name of a model
  * @param fallback - Fallback config
@@ -391,7 +391,7 @@ predator.getConfig = (modelName, fallback) => {
 }
 
 /**
- * Get model from localstorage by name. YES
+ * Get model from localstorage by name.
  * 
  * @param modelName - Name of the model
  * @returns Tsfjs model reference
@@ -407,7 +407,7 @@ predator.getModelByName = async (modelName) => {
 }
 
 /**
- * Retrieve model from model data object. YES
+ * Retrieve model from model data object.
  * 
  * @param modelData - Object containing model information
  * @param noModelCallback - Function to execute if model was not found
@@ -424,7 +424,7 @@ predator.unpackModel = async (modelData, noModelCallback) => {
 }
 
 /**
- * Plot data to scatter plot. YES
+ * Plot data to scatter plot.
  * 
  * @param values - Array of values to plot
  * @param series - Array of series to apply
@@ -473,7 +473,7 @@ predator.makeTensor = (points, shape) => {
 }
 
 /**
- * Generate dense layers based on tensor shape. YES
+ * Generate dense layers based on tensor shape.
  * 
  * @param params - Parameters defining dense layers
  * @param tensorShapes - Shape of input tensor data
