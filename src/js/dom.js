@@ -132,8 +132,12 @@ const showBox = (modelName, target) => {
         <span>Bias</span>
         <span>${_config.neural.layers.bias}</span>
         <span>Params</span>
-        <span>${_config.system.params.join(', ')}</span>
+        <span>${_config.system.params.join(' -> ')}</span>
         <span>Tensor Shape</span>
-        <span>${_config.neural.layers.tensorShape.join(', ')}</span>
+        <span>${_config.neural.layers.tensorShapes.join(' and ')}</span>
+        <span>Layers Amount</span>
+        <span>${_config.neural.layers.amount}</span>
+        <span>Layer Nodes</span>
+        <span>${_config.neural.layers.nodes}</span>
     `;
 }

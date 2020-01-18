@@ -120,6 +120,8 @@
             #draggable {
                 position: absolute;
                 text-align: center;
+                max-height: 433px;
+                overflow-y: auto;
                 min-width: 200px;
                 padding: 1rem;
                 border-radius: 5px;
@@ -197,24 +199,15 @@
             
             const pred = new predator({
                 neural: {
-                    model: {
-                        epochs: 15,
-                        loss: 'meanSquaredError',
-                        optimizer: 'adam',
-                    },
                     layers: {
-                        bias: true,
-                        activation: 'sigmoid',
-                        amount: 3,
-                        nodes: 10,
-                        tensorShape: [predator.max(1), 1],
+                        tensorShapes: [[predator.max(1), 1], [predator.max(1), 1]],
                     },
                 },
                 system: {
                     params: ['sqft_living', 'price'],
                     csvPath: `../csv/dataset.csv`,
                 }
-            });
+            }).applyDefaults();
             
             dispatchHandlers();
 
