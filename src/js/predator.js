@@ -72,7 +72,6 @@ const predator = function(config) {
         if (!model) { return []; }
 
         const [xs, ys] = tf.tidy(() => {
-
             const normalizedXs = tf.linspace(0, 1, pointAmount),
                   normalizedYs = model.predict(normalizedXs.reshape([scaler, targetDimension].flat()));
 
