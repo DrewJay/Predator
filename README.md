@@ -24,7 +24,7 @@ Training is super easy:
 ```
 const myModel = await pred.session('myModel');
 ```
-That's it. Your model will be ready when training is finished. Model also will be saved as 'myModel' to local storage, as first parameter of <strong>session</strong> specifies. It can also be left out empty, no need to save anything.
+That's it. Your model will be ready when training is finished. Model will also be saved as 'myModel' to local storage, as first parameter of <strong>session</strong> specifies. It can also be left out empty, no need to save anything.
 
 Prediction is super easy as well:
 ```
@@ -35,7 +35,7 @@ We tell Predator to use input value <i>1500</i> (living square feet, remember?) 
 Second parameter of <strong>predict</strong> can also contain key <i>name</i>, which specifies the model name of model stored in local storage. Therefore using ```{name: 'myModel'}``` would work the same. And that's why single Predator instance can use models trained by other instances and easily engage the prediction.
 
 ### A little more to know
-This example used barely any constructor configurations. There are many options you can optimize the network with, but they can also be omitted and automatically defaulted. For example if you ommit loss function, it defaults to <i>meanSquaredError</i>, or if you omit activation function, it defaults to <i>sigmoid</i>.
+This example used barely any constructor configurations. There are many options you can optimize the network with, but they can also be omitted and automatically defaulted. For example if you omit loss function, it defaults to <i>meanSquaredError</i>, or if you omit activation function, it defaults to <i>sigmoid</i>.
 
 We use <strong>neural</strong> configuration to apply specific behavior on our neural networks:
 ```
