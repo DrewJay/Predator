@@ -186,7 +186,6 @@ const Predator = function(config) {
  */
 Predator.applyDefaults = (config) => {
     let neural = config.neural;
-    console.log(config);
     const params = config.system.params;
     const keys = ['model/epochs', 'model/loss', 'model/optimizer', 'model/ttSplit', 'layers/bias', 'layers/activation', 'layers/amount', 'layers/nodes', 'layers/tensorShapes'];
     const defaults = [10, 'meanSquaredError', 'adam', 2, true, 'sigmoid', 3, 10, [[Predator.max(1), Predator.paramLength(params[0])], [Predator.max(1), Predator.paramLength(params[1])]]];
