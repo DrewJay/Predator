@@ -3,7 +3,7 @@
  * all kinds of regressions and neural network model
  * creation. Based on tensorflow js.
  */
-const predator = function(config) {
+const Predator = function(config) {
 
     // << Launch configuration cheat sheet >>
     // -> neural/model:
@@ -21,7 +21,7 @@ const predator = function(config) {
     //      + visual {boolean} @ false
     //      + params {array}{array|string}
     //      + csvPath {string}
-    this.config = predator.applyDefaults(config);
+    this.config = Predator.applyDefaults(config);
 
     this.config.generated = {};
     this.predCache = [];
@@ -39,7 +39,7 @@ const predator = function(config) {
         if (!this.config.system.visual) { return false; }
         if (!tfvis.visor().isOpen()) { tfvis.visor().toggle(); }
 
-        const model = await predator.unpackModel(modelData, modelData.noModelCallback);
+        const model = await Predator.unpackModel(modelData, modelData.noModelCallback);
         if (!model && shouldPredict) { return model; }
 
         if (shouldAggregate) {
@@ -55,7 +55,7 @@ const predator = function(config) {
             seriesArrays.push('predicted');
         }
 
-        predator.genericPlot([this.points, predictedPoints], ['original', 'predicted'], modelData, this);
+        Predator.genericPlot([this.points, predictedPoints], ['original', 'predicted'], modelData, this);
     }
 
     /**
@@ -65,7 +65,7 @@ const predator = function(config) {
      * @returns Array of points
      */
     this.generatePredictionPoints = async (modelData) => {
-        const model = await predator.unpackModel(modelData, modelData.noModelCallback);
+        const model = await Predator.unpackModel(modelData, modelData.noModelCallback);
         const targetDimension = this.config.neural.layers.tensorShapes[0].slice(1);
         const dimensionProduct = targetDimension.reduce((a, b) => a * b);
         const scaler = 100;
@@ -77,8 +77,8 @@ const predator = function(config) {
             const normalizedXs = tf.linspace(0, 1, pointAmount),
                   normalizedYs = model.predict(normalizedXs.reshape([scaler, targetDimension].flat()));
 
-            const dnxs = predator.denormalizeTensor(normalizedXs, this.predCache[0]);
-                  dnys = predator.denormalizeTensor(normalizedYs, this.predCache[1]);
+            const dnxs = Predator.denormalizeTensor(normalizedXs, this.predCache[0]);
+                  dnys = Predator.denormalizeTensor(normalizedYs, this.predCache[1]);
 
             return [ dnxs.dataSync(), dnys.dataSync() ];
         });
@@ -96,21 +96,21 @@ const predator = function(config) {
      * @returns Predicted x value
      */
     this.predict = async (values, modelData) => {
-        const model = await predator.unpackModel(modelData, modelData.noModelCallback);
+        const model = await Predator.unpackModel(modelData, modelData.noModelCallback);
         if (!model) { return null; }
         await this.aggregateState(model.modelName, this);
 
         const paramLen = Array.isArray(this.config.system.params[0]) ? this.config.system.params[0].length : 1;
         if (paramLen !== values.length) {
-            predator.error(
+            Predator.error(
                 `badinput`,
                 `Model "${model.modelName}" expects ${paramLen} inputs but got ${values.length}.`
             );
         }
 
         // Except the first dimension (acting as a null), the rest of dimensions have to match the training tensor.
-        const inputTensor = predator.normalizeTensor(predator.makeTensor(values, [1, this.config.neural.layers.tensorShapes[0].slice(1)].flat()), this.predCache[0]);
-        const outputTensor = predator.denormalizeTensor(model.predict(inputTensor), this.predCache[1]);
+        const inputTensor = Predator.normalizeTensor(Predator.makeTensor(values, [1, this.config.neural.layers.tensorShapes[0].slice(1)].flat()), this.predCache[0]);
+        const outputTensor = Predator.denormalizeTensor(model.predict(inputTensor), this.predCache[1]);
         return outputTensor.dataSync();
     }
 
@@ -121,13 +121,13 @@ const predator = function(config) {
      * @param modelName - If used, state is aggregated from saved model.
      */
     this.aggregateState = async (modelName) => {
-        this.config = predator.getConfig(modelName);
+        this.config = Predator.getConfig(modelName, this.config);
         if (!Array.isArray(this.config.neural.layers.tensorShapes[0])) { this.config.neural.layers.tensorShapes = [this.config.neural.layers.tensorShapes, this.config.neural.layers.tensorShapes]; }
         const params = this.config.system.params;
-        this.points = await predator.consumeCSV(this.config.system.csvPath, params);
+        this.points = await Predator.consumeCSV(this.config.system.csvPath, params);
         this.predCache = [];
-        await predator.tensorFromArray(this.config.neural.layers.tensorShapes[0], this.points, 'x', this),
-        await predator.tensorFromArray(this.config.neural.layers.tensorShapes[1], this.points, 'y', this);
+        await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[0], this.points, 'x', this),
+        await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[1], this.points, 'y', this);
     }
 
     /**
@@ -141,29 +141,29 @@ const predator = function(config) {
         this.predCache = [];
 
         // Read data from CSV.
-        this.points = await predator.consumeCSV(this.config.system.csvPath, this.config.system.params);
+        this.points = await Predator.consumeCSV(this.config.system.csvPath, this.config.system.params);
         
         // Create feature and label tensors.
-        const featureTensor = await predator.tensorFromArray(this.config.neural.layers.tensorShapes[0], this.points, 'x', this),
-              labelTensor = await predator.tensorFromArray(this.config.neural.layers.tensorShapes[1], this.points, 'y', this);
+        const featureTensor = await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[0], this.points, 'x', this),
+              labelTensor = await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[1], this.points, 'y', this);
 
         // Test-train split.
         const [trainFeatureTensor, testFeatureTensor] = tf.split(featureTensor, this.config.neural.model.ttSplit),
               [trainLabelTensor, testLabelTensor] = tf.split(labelTensor, this.config.neural.model.ttSplit);
         
         // Create tsfjs model and train it.
-        const layers = predator.symmetricDNNGenerator({ amount: this.config.neural.layers.amount, units: this.config.neural.layers.nodes, bias: this.config.neural.layers.bias, activation: this.config.neural.layers.activation }, this.config.neural.layers.tensorShapes );
+        const layers = Predator.symmetricDNNGenerator({ amount: this.config.neural.layers.amount, units: this.config.neural.layers.nodes, bias: this.config.neural.layers.bias, activation: this.config.neural.layers.activation }, this.config.neural.layers.tensorShapes );
         this.config.generated.layers = layers;
 
-        const model = predator.createModel(
+        const model = Predator.createModel(
             layers, this.config.neural.model.optimizer, this.config.neural.model.loss
         );
 
-        const trainResult = await predator.train(model, this.config.neural.model.epochs, { trainFeatureTensor, trainLabelTensor }, this.config.system.visual);
+        const trainResult = await Predator.train(model, this.config.neural.model.epochs, { trainFeatureTensor, trainLabelTensor }, this.config.system.visual);
         
         // If name is set, save the model.
         if (name) {
-            await predator.saveModel(model, name, this.config);
+            await Predator.saveModel(model, name, this.config);
         }
 
         // Calculate test loss.
@@ -171,7 +171,7 @@ const predator = function(config) {
         const testLoss = await lossTensor.dataSync();
         
         // Plot the results.
-        await this.mergePlot({ model: model, name }, false, true, pred);
+        await this.mergePlot({ model: model, name }, false, true);
 
         if (this.config.system.visual) {
             tfvis.render.barchart({ name: 'Test vs Train' }, [{ index: 'Train', value: trainResult.history.loss[this.config.neural.model.epochs - 1] }, { index: 'Test', value: testLoss }]);
@@ -184,11 +184,12 @@ const predator = function(config) {
 /**
  * Apply default values to missing configurations.
  */
-predator.applyDefaults = (config) => {
+Predator.applyDefaults = (config) => {
     let neural = config.neural;
+    console.log(config);
     const params = config.system.params;
     const keys = ['model/epochs', 'model/loss', 'model/optimizer', 'model/ttSplit', 'layers/bias', 'layers/activation', 'layers/amount', 'layers/nodes', 'layers/tensorShapes'];
-    const defaults = [10, 'meanSquaredError', 'adam', 2, true, 'sigmoid', 3, 10, [[predator.max(1), predator.paramLength(params[0])], [predator.max(1), predator.paramLength(params[1])]]];
+    const defaults = [10, 'meanSquaredError', 'adam', 2, true, 'sigmoid', 3, 10, [[Predator.max(1), Predator.paramLength(params[0])], [Predator.max(1), Predator.paramLength(params[1])]]];
 
     if (!neural) { config.neural = {}; neural = {}; }
     if (!neural.model) { config.neural.model = {}; }
@@ -197,7 +198,7 @@ predator.applyDefaults = (config) => {
     if (!neural.model && !neural.layers) { 
         console.warn('Using default preset for standard regression task. Feel free to specify your configuration @ instance.config.'); 
     }
-    
+
     keys.forEach((value, idx) => {
         [space, key] = value.split('/');
         if (!config.neural[space][key]) {
@@ -215,7 +216,7 @@ predator.applyDefaults = (config) => {
  * @param text - Error text
  * @returns New error
  */
-predator.error = (name, text) => {
+Predator.error = (name, text) => {
     let err = new Error(text);
     err.name = `pred::${name}`;
     throw err;
@@ -227,7 +228,7 @@ predator.error = (name, text) => {
  * @param param - Subject param
  * @returns Length
  */
-predator.paramLength = (param) => {
+Predator.paramLength = (param) => {
     if (Array.isArray(param)) {
         return param.length;
     } else {
@@ -241,7 +242,7 @@ predator.paramLength = (param) => {
  * @param divide - Divisor
  * @returns Object containing operation information
  */
-predator.max = (divide = 1) => {
+Predator.max = (divide = 1) => {
     return {
         fn: (input) => input.length / divide,
         name: 'max',
@@ -256,7 +257,7 @@ predator.max = (divide = 1) => {
  * @param override - Use min and max from this overriding tensor
  * @returns Normalized tensor
  */
-predator.normalizeTensor = (tensor, override) => {
+Predator.normalizeTensor = (tensor, override) => {
     const min = (override) ? override.min() : tensor.min();
     const max = (override) ? override.max() : tensor.max();
     return tensor.sub(min).div(max.sub(min));
@@ -269,7 +270,7 @@ predator.normalizeTensor = (tensor, override) => {
  * @param override - Use min and max from this overriding tensor
  * @returns Denormalized tensor
  */
-predator.denormalizeTensor = (tensor, override) => {
+Predator.denormalizeTensor = (tensor, override) => {
     const min = (override) ? override.min() : tensor.min();
     const max = (override) ? override.max() : tensor.max();
     return tensor.mul(max.sub(min)).add(min);
@@ -283,7 +284,7 @@ predator.denormalizeTensor = (tensor, override) => {
  * @param loss - Name of a loss function
  * @returns Compiled tsfjs model
  */
-predator.createModel = (layers, optimizerName, loss) => {
+Predator.createModel = (layers, optimizerName, loss) => {
     const model = tf.sequential();
 
     for (const layer of layers) {
@@ -309,7 +310,7 @@ predator.createModel = (layers, optimizerName, loss) => {
  * @param showProgess - Visually show training progress
  * @returns Training data
  */
-predator.train = async (model, epochs, { trainFeatureTensor, trainLabelTensor }, showProgress = false) => {
+Predator.train = async (model, epochs, { trainFeatureTensor, trainLabelTensor }, showProgress = false) => {
     
     let callbacks = {};
 
@@ -334,12 +335,12 @@ predator.train = async (model, epochs, { trainFeatureTensor, trainLabelTensor },
  * @param params - If present, override local params
  * @returns Array-ized CSV data
  */
-predator.consumeCSV = async (url, params) => {
+Predator.consumeCSV = async (url, params) => {
     const data = tf.data.csv(url);
     
     const pointDataSet = await data.map(record => ({
-        x: predator.spreadRecordFields(record, params[0]),
-        y: predator.spreadRecordFields(record, params[1]),
+        x: Predator.spreadRecordFields(record, params[0]),
+        y: Predator.spreadRecordFields(record, params[1]),
     }));
 
     const _points = await pointDataSet.toArray();
@@ -357,7 +358,7 @@ predator.consumeCSV = async (url, params) => {
  * @param params - Searched parameters
  * @returns Array of values
  */
-predator.spreadRecordFields = (record, params) => {
+Predator.spreadRecordFields = (record, params) => {
     let values = [];
 
     if (!Array.isArray(params)) { return record[params]; }
@@ -378,19 +379,19 @@ predator.spreadRecordFields = (record, params) => {
  * @param instance - Predator instance (optional)
  * @returns Tsfjs Tensor object
  */
-predator.tensorFromArray = async (shape, arr, field, instance) => {
+Predator.tensorFromArray = async (shape, arr, field, instance) => {
     instance.shapeIndex = (field === 'x') ? 0 : 1;
     
-    shape = predator.adjusttensorShapes(shape, arr, instance);
+    shape = Predator.adjusttensorShapes(shape, arr, instance);
 
     if (instance) { instance.config.neural.layers.tensorShapes[instance.shapeIndex] = shape; }
 
     const fetchedArray = await arr.map(val => val[field]);
 
     const adjustedArray = fetchedArray.slice(0, shape.reduce((a,b) => a * b ));
-    const tensor = predator.makeTensor(adjustedArray, shape);
+    const tensor = Predator.makeTensor(adjustedArray, shape);
     if (instance) { instance.predCache.push(tensor); }
-    return predator.normalizeTensor(tensor);
+    return Predator.normalizeTensor(tensor);
 }
 
 /**
@@ -401,7 +402,7 @@ predator.tensorFromArray = async (shape, arr, field, instance) => {
  * @param saveTo - Instance where to save modifying parameters
  * @returns Adjusted tensor shape
  */
-predator.adjusttensorShapes = (shape, points, saveTo) => {
+Predator.adjusttensorShapes = (shape, points, saveTo) => {
     saveTo.config.generated.adjusted = saveTo.config.generated.adjusted || [];
     shape.forEach((value, index) => {
         if (typeof value === 'object') {
@@ -421,7 +422,7 @@ predator.adjusttensorShapes = (shape, points, saveTo) => {
  * @param config - Predator configuration
  * @returns Saving result
  */
-predator.saveModel = async (model, modelName, config) => {
+Predator.saveModel = async (model, modelName, config) => {
     localStorage.setItem(`tfmodel/${modelName}`, JSON.stringify(config));
     return await model.save(`localstorage://${modelName}`);
 }
@@ -433,7 +434,7 @@ predator.saveModel = async (model, modelName, config) => {
  * @param fallback - Fallback config
  * @returns Configuration object
  */
-predator.getConfig = (modelName, fallback) => {
+Predator.getConfig = (modelName, fallback) => {
     const data = localStorage.getItem(`tfmodel/${modelName}`);
     if (data) { console.log(`Model config ${modelName} found.`); } else { console.log(`Model config ${modelName} not found.`); }
     return (data) ? JSON.parse(data) : fallback;
@@ -445,7 +446,7 @@ predator.getConfig = (modelName, fallback) => {
  * @param modelName - Name of the model
  * @returns Tsfjs model reference
  */
-predator.getModelByName = async (modelName) => {
+Predator.getModelByName = async (modelName) => {
     const modelInfo = (await tf.io.listModels())[`localstorage://${modelName}`];
     if (modelInfo) {
         let model = await tf.loadLayersModel(`localstorage://${modelName}`);
@@ -462,9 +463,9 @@ predator.getModelByName = async (modelName) => {
  * @param noModelCallback - Function to execute if model was not found
  * @returns Tensorflow model
  */
-predator.unpackModel = async (modelData, noModelCallback) => {
+Predator.unpackModel = async (modelData, noModelCallback) => {
     if (!modelData.model) {
-        const model = await predator.getModelByName(modelData.name || modelData);
+        const model = await Predator.getModelByName(modelData.name || modelData);
         if (!model) { if (noModelCallback) { noModelCallback(); } return null; }
         else { return model; }
     } else {
@@ -480,12 +481,12 @@ predator.unpackModel = async (modelData, noModelCallback) => {
  * @param modelData - Object containing model info
  * @param instance - Predator instance (optional)
  */
-predator.genericPlot = (values, series, modelData, instance) => {
+Predator.genericPlot = (values, series, modelData, instance) => {
     const modelName = (typeof modelData === 'string') ? modelData : (modelData.name || 'default');
     let featureName, labelName;
 
     if (instance) {
-        const config = predator.getConfig(modelName, instance.config);
+        const config = Predator.getConfig(modelName, instance.config);
         featureName = config.system.params[0];
         labelName = config.system.params[1];
     } else {
@@ -516,7 +517,7 @@ predator.genericPlot = (values, series, modelData, instance) => {
  * @returns Tensor creating function
  * 
  */
-predator.makeTensor = (points, shape) => {
+Predator.makeTensor = (points, shape) => {
     const builder = tf[`tensor${shape.length}d`];
     return builder(points.flat(), shape);
 }
@@ -528,7 +529,7 @@ predator.makeTensor = (points, shape) => {
  * @param tensorShapes - Shape of input tensor data
  * @returns Array of dense layers
  */
-predator.symmetricDNNGenerator = ({ amount, units, bias, activation }, tensorShapes) => {
+Predator.symmetricDNNGenerator = ({ amount, units, bias, activation }, tensorShapes) => {
     let layers = [];
     
     let shape = tensorShapes[0].slice(1, -1);

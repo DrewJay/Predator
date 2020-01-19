@@ -118,7 +118,7 @@ const dispatchHandlers = () => {
  */
 const showBox = (modelName, target) => {
 
-    const _config = predator.getConfig(modelName);
+    const _config = Predator.getConfig(modelName);
 
     if (!gid('draggable').className.includes('shown')) {
         gid('draggable').classList.add('shown');
