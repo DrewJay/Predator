@@ -102,7 +102,7 @@ const Predator = function(config) {
 
         const paramLen = Array.isArray(this.config.system.params[0]) ? this.config.system.params[0].length : 1;
         if (paramLen !== values.length) {
-            Predator.error(
+            throw Predator.error(
                 `badinput`,
                 `Model "${model.modelName}" expects ${paramLen} inputs but got ${values.length}.`
             );
@@ -219,7 +219,7 @@ Predator.applyDefaults = (config) => {
 Predator.error = (name, text) => {
     let err = new Error(text);
     err.name = `pred::${name}`;
-    throw err;
+    return err;
 }
 
 /**

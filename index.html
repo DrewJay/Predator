@@ -201,9 +201,14 @@
         <script>
             
             const pred = new Predator({
+                neural: {
+                    layers: {
+                        tensorShapes: [[Predator.max(1), 2], [Predator.max(1), 1]]
+                    },
+                },
                 system: {
                     visual: true,
-                    params: ['sqft_living', 'price'],
+                    params: [['sqft_living', 'bedrooms'], 'price'],
                     csvPath: `../csv/dataset.csv`,
                 }
             });
