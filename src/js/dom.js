@@ -2,6 +2,7 @@
  * Get element by ID shortform.
  * 
  * @param id - ID of element
+ * @returns HTML element
  */
 const gid = (id) => {
     return document.getElementById(id);
@@ -27,16 +28,22 @@ const toggleLoad = () => {
 /**
  * Make prediction and show results.
  * 
- * @param x - Feature amount
+ * @param input - Prediction input
  */
-const makeprediction = async (x) => {
+const makeprediction = async (input) => {
     const modelName = prompt('Choose a model:');
     toggleLoad();
-    const input = x.toString().split(',').map((val) => parseInt(val.replace(' ', '')));
-    const result = await pred.predict({ name: modelName }, input);
-    const html = result ? `For value <span class='input'>${input.join('/')}</span> model <span class='name'>${modelName}</span> predicted result <span class='result'>${Math.floor(result)}</span>.` : `Model does not exist.`
-    gid('display').innerHTML = html;
-    toggleLoad();
+    const arrayized = input.toString().split(',').map((val) => parseInt(val.replace(' ', '')));
+
+    try {
+        const result = await pred.predict(arrayized, { name: modelName });
+        const html = result ? `For value <span class='input'>${arrayized.join('/')}</span> model <span class='name'>${modelName}</span> predicted result <span class='result'>${Math.floor(result)}</span>.` : `Model does not exist.`
+        gid('display').innerHTML = html;
+    } catch(error) {
+        gid('display').innerHTML = `${error.name} - ${error.message}`;
+    } finally {
+        toggleLoad();
+    }
 }
 
 /**

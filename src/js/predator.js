@@ -16,11 +16,12 @@ const predator = function(config) {
     //      + activation {string} @ 'sigmoid'
     //      + amount {number} @ 3
     //      + nodes {number} @ 10
-    //      + tensorShapes {array}{array}
+    //      + tensorShapes {array}{array} @ [[max(1), len(param[0])], [max(1)], len(param[1])]
     // -> system:
+    //      + visual {boolean} @ false
     //      + params {array}{array|string}
     //      + csvPath {string}
-    this.config = config;
+    this.config = predator.applyDefaults(config);
 
     this.config.generated = {};
     this.predCache = [];
@@ -35,6 +36,7 @@ const predator = function(config) {
      */
     this.mergePlot = async (modelData, shouldAggregate, shouldPredict) => {
 
+        if (!this.config.system.visual) { return false; }
         if (!tfvis.visor().isOpen()) { tfvis.visor().toggle(); }
 
         const model = await predator.unpackModel(modelData, modelData.noModelCallback);
@@ -89,14 +91,22 @@ const predator = function(config) {
     /**
      * Attempt to make a prediction.
      * 
-     * @param modelData - Object containing model name or model itself
      * @param values - Feature values
+     * @param modelData - Object containing model name or model itself
      * @returns Predicted x value
      */
-    this.predict = async (modelData, values) => {
+    this.predict = async (values, modelData) => {
         const model = await predator.unpackModel(modelData, modelData.noModelCallback);
         if (!model) { return null; }
         await this.aggregateState(model.modelName, this);
+
+        const paramLen = Array.isArray(this.config.system.params[0]) ? this.config.system.params[0].length : 1;
+        if (paramLen !== values.length) {
+            predator.error(
+                `badinput`,
+                `Model "${model.modelName}" expects ${paramLen} inputs but got ${values.length}.`
+            );
+        }
 
         // Except the first dimension (acting as a null), the rest of dimensions have to match the training tensor.
         const inputTensor = predator.normalizeTensor(predator.makeTensor(values, [1, this.config.neural.layers.tensorShapes[0].slice(1)].flat()), this.predCache[0]);
@@ -121,33 +131,11 @@ const predator = function(config) {
     }
 
     /**
-     * Apply default values to missing configurations.
-     */
-    this.applyDefaults = () => {
-        const neural = this.config.neural;
-        const keys = ['model/epochs', 'model/loss', 'model/optimizer', 'model/ttSplit', 'layers/bias', 'layers/activation', 'layers/amount', 'layers/nodes'];
-        const defaults = [10, 'meanSquaredError', 'adam', 2, true, 'sigmoid', 3, 10];
-
-        if (!neural.model) {this.config.neural.model = {};}
-        if (!neural.layers) {this.config.neural.layers = {};}
-
-        keys.forEach((value, idx) => {
-            [space, key] = value.split('/');
-            if (!neural[space][key]) {
-                this.config.neural[space][key] = defaults[idx];
-            }
-        });
-
-        return this;
-    }
-
-    /**
      * Run training session. NO
      * 
      * @param name - Model name to save
-     * @visual - If show training graph (slower performance)
      */
-    this.session = async (name, visual = true) => {
+    this.session = async (name) => {
 
         // Reset predCache.
         this.predCache = [];
@@ -164,14 +152,14 @@ const predator = function(config) {
               [trainLabelTensor, testLabelTensor] = tf.split(labelTensor, this.config.neural.model.ttSplit);
         
         // Create tsfjs model and train it.
-        const layers = predator.symmetricDenseGenerator({ amount: this.config.neural.layers.amount, units: this.config.neural.layers.nodes, bias: this.config.neural.layers.bias, activation: this.config.neural.layers.activation }, this.config.neural.layers.tensorShapes );
+        const layers = predator.symmetricDNNGenerator({ amount: this.config.neural.layers.amount, units: this.config.neural.layers.nodes, bias: this.config.neural.layers.bias, activation: this.config.neural.layers.activation }, this.config.neural.layers.tensorShapes );
         this.config.generated.layers = layers;
 
         const model = predator.createModel(
             layers, this.config.neural.model.optimizer, this.config.neural.model.loss
         );
 
-        const trainResult = await predator.train(model, this.config.neural.model.epochs, { trainFeatureTensor, trainLabelTensor } );
+        const trainResult = await predator.train(model, this.config.neural.model.epochs, { trainFeatureTensor, trainLabelTensor }, this.config.system.visual);
         
         // If name is set, save the model.
         if (name) {
@@ -183,10 +171,67 @@ const predator = function(config) {
         const testLoss = await lossTensor.dataSync();
         
         // Plot the results.
-        if (visual) {
-            await this.mergePlot({ model: model, name }, false, true, pred);
+        await this.mergePlot({ model: model, name }, false, true, pred);
+
+        if (this.config.system.visual) {
+            tfvis.render.barchart({ name: 'Test vs Train' }, [{ index: 'Train', value: trainResult.history.loss[this.config.neural.model.epochs - 1] }, { index: 'Test', value: testLoss }]);
         }
-        tfvis.render.barchart({ name: 'Test vs Train' }, [{ index: 'Train', value: trainResult.history.loss[this.config.neural.model.epochs - 1] }, { index: 'Test', value: testLoss }]);
+
+        return model;
+    }
+}
+
+/**
+ * Apply default values to missing configurations.
+ */
+predator.applyDefaults = (config) => {
+    let neural = config.neural;
+    const params = config.system.params;
+    const keys = ['model/epochs', 'model/loss', 'model/optimizer', 'model/ttSplit', 'layers/bias', 'layers/activation', 'layers/amount', 'layers/nodes', 'layers/tensorShapes'];
+    const defaults = [10, 'meanSquaredError', 'adam', 2, true, 'sigmoid', 3, 10, [[predator.max(1), predator.paramLength(params[0])], [predator.max(1), predator.paramLength(params[1])]]];
+
+    if (!neural) { config.neural = {}; neural = {}; }
+    if (!neural.model) { config.neural.model = {}; }
+    if (!neural.layers) { config.neural.layers = {}; }
+
+    if (!neural.model && !neural.layers) { 
+        console.warn('Using default preset for standard regression task. Feel free to specify your configuration @ instance.config.'); 
+    }
+    
+    keys.forEach((value, idx) => {
+        [space, key] = value.split('/');
+        if (!config.neural[space][key]) {
+            config.neural[space][key] = defaults[idx];
+        }
+    });
+
+    return config;
+}
+
+/**
+ * Create new predator error.
+ * 
+ * @param name - Error name
+ * @param text - Error text
+ * @returns New error
+ */
+predator.error = (name, text) => {
+    let err = new Error(text);
+    err.name = `pred::${name}`;
+    throw err;
+}
+
+/**
+ * Get length of params, wheter it's array or a string.
+ * 
+ * @param param - Subject param
+ * @returns Length
+ */
+predator.paramLength = (param) => {
+    if (Array.isArray(param)) {
+        return param.length;
+    } else {
+        return 1;
     }
 }
 
@@ -261,19 +306,24 @@ predator.createModel = (layers, optimizerName, loss) => {
  * @param model - Tsfjs model reference
  * @param epochs - Amount of epochs
  * @param tensors - Feature and label tensors
+ * @param showProgess - Visually show training progress
  * @returns Training data
  */
-predator.train = async (model, epochs, { trainFeatureTensor, trainLabelTensor }) => {
-    const { onBatchEnd, onEpochEnd } = tfvis.show.fitCallbacks(
-        { name: "Training Performance" },
-        ['loss']
-    );
+predator.train = async (model, epochs, { trainFeatureTensor, trainLabelTensor }, showProgress = false) => {
+    
+    let callbacks = {};
 
+    if (showProgress) {
+        const { onBatchEnd, onEpochEnd } = tfvis.show.fitCallbacks(
+            { name: "Training Performance" },
+            ['loss']
+        );
+        callbacks = { onEpochEnd };
+    }
+    
     return await model.fit(trainFeatureTensor, trainLabelTensor, {
         epochs,
-        callbacks: {
-            onEpochEnd,
-        },
+        callbacks,
     });
 }
 
@@ -478,7 +528,7 @@ predator.makeTensor = (points, shape) => {
  * @param tensorShapes - Shape of input tensor data
  * @returns Array of dense layers
  */
-predator.symmetricDenseGenerator = ({ amount, units, bias, activation }, tensorShapes) => {
+predator.symmetricDNNGenerator = ({ amount, units, bias, activation }, tensorShapes) => {
     let layers = [];
     
     let shape = tensorShapes[0].slice(1, -1);
