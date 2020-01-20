@@ -16,7 +16,7 @@ const Predator = function(config) {
     //      + activation {string} @ 'sigmoid'
     //      + amount {number} @ 3
     //      + nodes {number} @ 10
-    //      + tensorShapes {array}{array} @ [[max(1), len(param[0])], [max(1)], len(param[1])]
+    //      + tensorShapes {array}{array} @ [[max(1), len(param[0])], [max(1), len(param[1])]]
     // -> system:
     //      + visual {boolean} @ false
     //      + params {array}{array|string}
@@ -40,10 +40,14 @@ const Predator = function(config) {
         if (!tfvis.visor().isOpen()) { tfvis.visor().toggle(); }
 
         const model = await Predator.unpackModel(modelData, modelData.noModelCallback);
-        if (!model && shouldPredict) { return model; }
-
+        if (!model && shouldPredict) { return false; }
+        
         if (shouldAggregate) {
-            await this.aggregateState(model.modelName, this);
+            if (model) {
+                await this.aggregateState(model.modelName, this);
+            } else {
+                return false;
+            }
         }
 
         const predictedPoints = (shouldPredict) ? await this.generatePredictionPoints({ model }, this) : [];
@@ -92,12 +96,21 @@ const Predator = function(config) {
      * Attempt to make a prediction.
      * 
      * @param values - Feature values
-     * @param modelData - Object containing model name or model itself
+     * @param modelData - Object containing model name or model itself. Can either be:
+     *                    1.) Left out empty to use latest model trained by instance
+     *                    2.) Contain named or unnamed model object
+     *                    3.) Contain model name
      * @returns Predicted x value
      */
-    this.predict = async (values, modelData) => {
-        const model = await Predator.unpackModel(modelData, modelData.noModelCallback);
-        if (!model) { return null; }
+    this.predict = async (values, modelData = {}) => {
+        let model = await Predator.unpackModel(modelData, modelData.noModelCallback);
+        
+        if (!model && this.config.generated.latestModel) { 
+            model = this.config.generated.latestModel; 
+        } else if (!model) {
+            return false;
+        }
+        
         await this.aggregateState(model.modelName, this);
 
         const paramLen = Array.isArray(this.config.system.params[0]) ? this.config.system.params[0].length : 1;
@@ -160,6 +173,8 @@ const Predator = function(config) {
         );
 
         const trainResult = await Predator.train(model, this.config.neural.model.epochs, { trainFeatureTensor, trainLabelTensor }, this.config.system.visual);
+        this.config.generated.latestModel = model;
+        this.config.generated.latestModel.modelName = name || 'anonymous';
         
         // If name is set, save the model.
         if (name) {
@@ -452,20 +467,20 @@ Predator.getModelByName = async (modelName) => {
         model.modelName = modelName;
         return model;
     }
-    return null;
+    return false;
 }
 
 /**
  * Retrieve model from model data object.
  * 
- * @param modelData - Object containing model information
+ * @param modelData - Object containing model information or stringified model name
  * @param noModelCallback - Function to execute if model was not found
  * @returns Tensorflow model
  */
 Predator.unpackModel = async (modelData, noModelCallback) => {
     if (!modelData.model) {
         const model = await Predator.getModelByName(modelData.name || modelData);
-        if (!model) { if (noModelCallback) { noModelCallback(); } return null; }
+        if (!model) { if (noModelCallback) { noModelCallback(); } return false; }
         else { return model; }
     } else {
         return modelData.model;

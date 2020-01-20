@@ -16,7 +16,7 @@ const pred = new Predator({
                 }
             });
 ```
-We define system configuration, <strong>visual</strong> says that any training performed by <i>pred</i> instance should be graphically displayed, <strong>params</strong> specify what particular field we want to read from CSV file (in this case, we will train network to predict <i>price</i> field based on <i>sqft_living</i> field) and <strong>csvPath</strong> just specifies path to CSV file relative to predator.js file.
+We define system configuration, <strong>`visual`</strong> says that any training performed by <i>pred</i> instance should be graphically displayed, <strong>`params`</strong> specify what particular field we want to read from CSV file (in this case, we will train network to predict <i>price</i> field based on <i>sqft_living</i> field) and <strong>`csvPath`</strong> just specifies path to CSV file relative to predator.js file.
 
 That's all, we are ready to train now!
 
@@ -28,11 +28,11 @@ That's it. Your model will be ready when training is finished. Model will also b
 
 Prediction is super easy as well:
 ```
-const prediction = await pred.predict([1500], {model});
+const prediction = await pred.predict([1500]);
 ```
 We tell Predator to use input value <i>1500</i> (living square feet, remember?) and predict the price.
 
-Second parameter of <strong>predict</strong> can also contain key <i>name</i>, which specifies the model name of model stored in local storage. Therefore using ```{name: 'myModel'}``` would work the same. And that's why single Predator instance can use models trained by other instances and easily engage the prediction.
+Second parameter of <strong>predict</strong> can also contain key <i>name</i>, which specifies the model name of model stored in local storage. Therefore using ```{name: 'myModel'}```, ```{model: myModel}```, or  ```'myModel'``` would work the same. And that's why single Predator instance can use models trained by other instances and easily engage the prediction.
 
 ### A little more to know
 This example used barely any constructor configurations. There are many options you can optimize the network with, but they can also be omitted and automatically defaulted. For example if you omit loss function, it defaults to <i>meanSquaredError</i>, or if you omit activation function, it defaults to <i>sigmoid</i>.
@@ -59,3 +59,24 @@ const pred = new Predator({
             });
 ```
 All configurations available can be found below.
+
+## Configurations
+
+| Name          | Level     | Type                  | Default           | Example               | Info          |
+|:------------- |:----------|:----------------------|:------------------|-----------------------|---------------|
+| epochs        | model     | number                | 10                | epochs: 5             |
+| loss          | model     | string                | meanSquaredError  | loss: 'logLoss'       |
+| optimizer     | model     | string                | adam              | optimizer: 'sgd'      |
+| ttSplit       | model     | number                | 2                 | ttSplit: 3            | test-train split
+| bias          | layers    | boolean               | true              | bias: false           |
+| activation    | layers    | string                | sigmoid           | activation: 'softmax' |
+| amount        | layers    | number                | 3                 | amount: 5             | amount of layers (includes input and output layers)
+| nodes         | layers    | number                | 10                | nodes: 16             | nodes per layers (excludes output layer)
+| tensorShapes  | layers    | array[][]             | minimalShape*     | exampleShape*         | Custom tensor dimensions
+| visual        | system    | boolean               | false             | visual: true          | Display training statistics
+| params        | system    | array[][] or array[]  |                   | params: ['a', 'b']    | Predict csv field 'b' based on field 'a'
+| csvPath       | system    | string                |                   | csvPath: '../file.csv'|
+
+<strong>*minimalShape = ```[[Predator.max(1), len(param[0])], [Predator.max(1), len(param[1])]]```</strong>
+
+<strong>*exampleShape = ```[[Predator.max(2), 2], [Predator.max(1), 1]]```</strong>
