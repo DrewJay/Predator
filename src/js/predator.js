@@ -396,7 +396,7 @@ Predator.spreadRecordFields = (record, params) => {
 Predator.tensorFromArray = async (shape, arr, field, instance) => {
     instance.shapeIndex = (field === 'x') ? 0 : 1;
     
-    shape = Predator.adjusttensorShapes(shape, arr, instance);
+    shape = Predator.adjustTensorShapes(shape, arr, instance);
 
     if (instance) { instance.config.neural.layers.tensorShapes[instance.shapeIndex] = shape; }
 
@@ -416,7 +416,7 @@ Predator.tensorFromArray = async (shape, arr, field, instance) => {
  * @param saveTo - Instance where to save modifying parameters
  * @returns Adjusted tensor shape
  */
-Predator.adjusttensorShapes = (shape, points, saveTo) => {
+Predator.adjustTensorShapes = (shape, points, saveTo) => {
     saveTo.config.generated.adjusted = saveTo.config.generated.adjusted || [];
     shape.forEach((value, index) => {
         if (typeof value === 'object') {
