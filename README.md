@@ -1,3 +1,6 @@
+<p align="center">
+  <img width="350" src="https://raw.githubusercontent.com/DrewJay/predator/master/logo.png">
+</p>
 # Predator
 Predator is a tool built on the top of TensorFlow.js, that significantly simplifies predictions (also called regression tasks). It is capable of doing simple regressions, multivariate regressions, linear or nonlinear, simplified model saving and retrieving and model performance visualizations (uses tfvis internally).
 
