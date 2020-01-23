@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="350" src="https://raw.githubusercontent.com/DrewJay/predator/master/logo.png">
+  <img width="350" src="https://raw.githubusercontent.com/DrewJay/predator/master/logo_pred.png">
 </p>
 
 # Predator
