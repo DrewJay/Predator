@@ -17,7 +17,7 @@ const pred = new Predator({
                     visual: true,
                     params: ['sqft_living', 'price'],
                     csvPath: `../csv/dataset.csv`,
-                }
+                },
             });
 ```
 We define system configuration, <strong>`visual`</strong> says that any training performed by <i>pred</i> instance should be graphically displayed, <strong>`params`</strong> specify what particular field we want to read from CSV file (in this case, we will train network to predict <i>price</i> field based on <i>sqft_living</i> field) and <strong>`csvPath`</strong> just specifies path to CSV file relative to predator.js file.
@@ -48,18 +48,18 @@ const pred = new Predator({
                     model: {
                         epochs: 20,        // We will use 20 epochs for training.
                         optimizer: 'sgd',  // Optimizer will be stochastic gradient descent.
-                    }
+                    },
                     layers: {
                         bias: true,        // Each layer will use bias. 
                         amount: 10,        // We will use 10 layers in total (including input and output layer).
-                        nodes: 6           // 6 nodes per layer will be present.
-                    }
-                }
+                        nodes: 6,          // 6 nodes per layer will be present.
+                    },
+                },
                 system: {
                     visual: true,
                     params: ['sqft_living', 'price'],
                     csvPath: `../csv/dataset.csv`,
-                }
+                },
             });
 ```
 All configurations available can be found below.
