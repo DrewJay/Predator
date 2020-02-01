@@ -181,15 +181,18 @@ const Predator = function(config) {
             await Predator.saveModel(model, name, this.config);
         }
 
-        // Calculate test loss.
+        // Calculate test and train loss.
         const lossTensor = model.evaluate(testFeatureTensor, testLabelTensor);
-        const testLoss = await lossTensor.dataSync();
+        const testLoss = (await lossTensor.dataSync())[0];
+        const trainLoss = trainResult.history.loss[this.config.neural.model.epochs - 1];
+
+        this.config.generated.loss = { trainLoss, testLoss };
         
         // Plot the results.
         await this.mergePlot({ model, name }, false, true);
 
         if (this.config.system.visual) {
-            tfvis.render.barchart({ name: 'Test vs Train' }, [{ index: 'Train', value: trainResult.history.loss[this.config.neural.model.epochs - 1] }, { index: 'Test', value: testLoss }]);
+            tfvis.render.barchart({ name: 'Test vs Train' }, [{ index: 'Test', value: testLoss }, { index: 'Train', value: trainLoss }]);
         }
 
         return model;

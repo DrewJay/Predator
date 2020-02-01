@@ -34,6 +34,8 @@
             input[type="button"] {
                 background: #ff9933;
                 border: 3px solid #e67300;
+                height: 43px;
+                width: 200px;
                 color: white;
                 box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
                 padding: .6rem 3rem;
@@ -167,7 +169,7 @@
         </style>
 
         <main id="main">
-            <img src="img/tflogo.png" width="300">
+            <img src="img/logo_pred.png" width="400">
 
             <br/>
             <br/>
@@ -203,15 +205,15 @@
             const pred = new Predator({
                 neural: {
                     model: {
-                        epochs: 1,
+                        epochs: 10,
                     },
                     layers: {
-                        tensorShapes: [[Predator.max(1), 2], [Predator.max(1), 1]]
+                        tensorShapes: [[Predator.max(1), 1], [Predator.max(1), 1]]
                     },
                 },
                 system: {
-                    visual: false,
-                    params: [['sqft_living', 'bedrooms'], 'price'],
+                    visual: true,
+                    params: ['sqft_living', 'price'],
                     csvPath: `../csv/dataset.csv`,
                 }
             });
