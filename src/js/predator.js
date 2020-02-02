@@ -23,8 +23,19 @@ const Predator = function(config) {
     //      + csvPath {string}
     this.config = Predator.applyDefaults(config);
 
+    // << Generated configuration cheat sheet >>
+    // -> /
+    //      + latestModel {model}
+    //      + layers {array}
+    // -> loss
+    //      + test {number}
+    //      + train {number}
+    // -> adjusted
+    //      + with {string}
+    //      + using {number}
     this.config.generated = {};
-    this.predCache = [];
+
+    this.tensorCache = [];
     this.points = [];
 
     /**
@@ -81,8 +92,8 @@ const Predator = function(config) {
             const normalizedXs = tf.linspace(0, 1, pointAmount),
                   normalizedYs = model.predict(normalizedXs.reshape([scaler, targetDimension].flat()));
 
-            const dnxs = Predator.denormalizeTensor(normalizedXs, this.predCache[0]);
-                  dnys = Predator.denormalizeTensor(normalizedYs, this.predCache[1]);
+            const dnxs = Predator.denormalizeTensor(normalizedXs, this.tensorCache[0]);
+                  dnys = Predator.denormalizeTensor(normalizedYs, this.tensorCache[1]);
 
             return [ dnxs.dataSync(), dnys.dataSync() ];
         });
@@ -122,8 +133,8 @@ const Predator = function(config) {
         }
 
         // Except the first dimension (acting as a null), the rest of dimensions have to match the training tensor.
-        const inputTensor = Predator.normalizeTensor(Predator.makeTensor(values, [1, this.config.neural.layers.tensorShapes[0].slice(1)].flat()), this.predCache[0]);
-        const outputTensor = Predator.denormalizeTensor(model.predict(inputTensor), this.predCache[1]);
+        const inputTensor = Predator.normalizeTensor(Predator.makeTensor(values, [1, this.config.neural.layers.tensorShapes[0].slice(1)].flat()), this.tensorCache[0]);
+        const outputTensor = Predator.denormalizeTensor(model.predict(inputTensor), this.tensorCache[1]);
         return outputTensor.dataSync();
     }
 
@@ -138,7 +149,7 @@ const Predator = function(config) {
         if (!Array.isArray(this.config.neural.layers.tensorShapes[0])) { this.config.neural.layers.tensorShapes = [this.config.neural.layers.tensorShapes, this.config.neural.layers.tensorShapes]; }
         const params = this.config.system.params;
         this.points = await Predator.consumeCSV(this.config.system.csvPath, params);
-        this.predCache = [];
+        this.tensorCache = [];
         await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[0], this.points, 'x', this),
         await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[1], this.points, 'y', this);
     }
@@ -150,8 +161,8 @@ const Predator = function(config) {
      */
     this.session = async (name) => {
 
-        // Reset predCache.
-        this.predCache = [];
+        // Reset tensorCache.
+        this.tensorCache = [];
 
         // Read data from CSV.
         this.points = await Predator.consumeCSV(this.config.system.csvPath, this.config.system.params);
@@ -201,6 +212,9 @@ const Predator = function(config) {
 
 /**
  * Apply default values to missing configurations.
+ * 
+ * @param config - Current configuration object
+ * @returns New configuration object
  */
 Predator.applyDefaults = (config) => {
     let neural = config.neural;
@@ -407,7 +421,7 @@ Predator.tensorFromArray = async (shape, arr, field, instance) => {
 
     const adjustedArray = fetchedArray.slice(0, shape.reduce((a,b) => a * b ));
     const tensor = Predator.makeTensor(adjustedArray, shape);
-    if (instance) { instance.predCache.push(tensor); }
+    if (instance) { instance.tensorCache.push(tensor); }
     return Predator.normalizeTensor(tensor);
 }
 
