@@ -186,7 +186,7 @@ const Predator = function(config) {
         const testLoss = (await lossTensor.dataSync())[0];
         const trainLoss = trainResult.history.loss[this.config.neural.model.epochs - 1];
 
-        this.config.generated.loss = { trainLoss, testLoss };
+        this.config.generated.loss = { train: trainLoss, test: testLoss };
         
         // Plot the results.
         await this.mergePlot({ model, name }, false, true);
