@@ -50,7 +50,7 @@ const Predator = function(config) {
         if (!this.config.system.visual) { return false; }
         if (!tfvis.visor().isOpen()) { tfvis.visor().toggle(); }
 
-        const model = await Predator.unpackModel(modelData, modelData.noModelCallback);
+        const model = await Predator.unpackModel(modelData);
         if (!model && shouldPredict) { return false; }
         
         if (shouldAggregate) {
@@ -80,7 +80,7 @@ const Predator = function(config) {
      * @returns Array of points
      */
     this.generatePredictionPoints = async (modelData) => {
-        const model = await Predator.unpackModel(modelData, modelData.noModelCallback);
+        const model = await Predator.unpackModel(modelData);
         const targetDimension = this.config.neural.layers.tensorShapes[0].slice(1);
         const dimensionProduct = targetDimension.reduce((a, b) => a * b);
         const scaler = 100;
@@ -114,7 +114,7 @@ const Predator = function(config) {
      * @returns Predicted x value
      */
     this.predict = async (values, modelData = {}) => {
-        let model = await Predator.unpackModel(modelData, modelData.noModelCallback);
+        let model = await Predator.unpackModel(modelData);
         
         if (!model && this.config.generated.latestModel) { 
             model = this.config.generated.latestModel; 
@@ -494,10 +494,10 @@ Predator.getModelByName = async (modelName) => {
  * @param noModelCallback - Function to execute if model was not found
  * @returns Tensorflow model
  */
-Predator.unpackModel = async (modelData, noModelCallback) => {
+Predator.unpackModel = async (modelData) => {
     if (!modelData.model) {
         const model = await Predator.getModelByName(modelData.name || modelData);
-        if (!model) { if (noModelCallback) { noModelCallback(); } return false; }
+        if (!model) { if (modelData.noModelCallback) { modelData.noModelCallback(); } return false; }
         else { return model; }
     } else {
         return modelData.model;
