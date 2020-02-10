@@ -92,7 +92,7 @@ const Predator = function(config) {
             const normalizedXs = tf.linspace(0, 1, pointAmount),
                   normalizedYs = model.predict(normalizedXs.reshape([scaler, targetDimension].flat()));
 
-            const dnxs = Predator.denormalizeTensor(normalizedXs, this.tensorCache[0]);
+            const dnxs = Predator.denormalizeTensor(normalizedXs, this.tensorCache[0]),
                   dnys = Predator.denormalizeTensor(normalizedYs, this.tensorCache[1]);
 
             return [ dnxs.dataSync(), dnys.dataSync() ];
@@ -127,7 +127,7 @@ const Predator = function(config) {
         const paramLen = Array.isArray(this.config.system.params[0]) ? this.config.system.params[0].length : 1;
         if (paramLen !== values.length) {
             throw Predator.error(
-                `badinput`,
+                'badinput',
                 `Model "${model.modelName}" expects ${paramLen} inputs but got ${values.length}.`
             );
         }
@@ -146,11 +146,16 @@ const Predator = function(config) {
      */
     this.aggregateState = async (modelName) => {
         this.config = Predator.getConfig(modelName, this.config);
-        if (!Array.isArray(this.config.neural.layers.tensorShapes[0])) { this.config.neural.layers.tensorShapes = [this.config.neural.layers.tensorShapes, this.config.neural.layers.tensorShapes]; }
+
+        // Solution for legacy models, which had no two-dimensional tensorshapes.
+        if (!Array.isArray(this.config.neural.layers.tensorShapes[0])) { 
+            this.config.neural.layers.tensorShapes = [this.config.neural.layers.tensorShapes, this.config.neural.layers.tensorShapes]; 
+        }
+        
         const params = this.config.system.params;
         this.points = await Predator.consumeCSV(this.config.system.csvPath, params);
         this.tensorCache = [];
-        await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[0], this.points, 'x', this),
+        await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[0], this.points, 'x', this);
         await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[1], this.points, 'y', this);
     }
 
@@ -176,7 +181,10 @@ const Predator = function(config) {
               [trainLabelTensor, testLabelTensor] = tf.split(labelTensor, this.config.neural.model.ttSplit);
         
         // Create tsfjs model and train it.
-        const layers = Predator.symmetricDNNGenerator({ amount: this.config.neural.layers.amount, units: this.config.neural.layers.nodes, bias: this.config.neural.layers.bias, activation: this.config.neural.layers.activation }, this.config.neural.layers.tensorShapes );
+        const layers = Predator.symmetricDNNGenerator(
+            { amount: this.config.neural.layers.amount, units: this.config.neural.layers.nodes, bias: this.config.neural.layers.bias, activation: this.config.neural.layers.activation },
+            this.config.neural.layers.tensorShapes
+        );
         this.config.generated.layers = layers;
 
         const model = Predator.createModel(
@@ -454,7 +462,7 @@ Predator.adjustTensorShapes = (shape, points, saveTo) => {
  * @returns Saving result
  */
 Predator.saveModel = async (model, modelName, config) => {
-    localStorage.setItem(`tfmodel/${modelName}`, JSON.stringify(config));
+    localStorage.setItem(`predConfig/${modelName}`, JSON.stringify(config));
     return await model.save(`localstorage://${modelName}`);
 }
 
@@ -466,9 +474,25 @@ Predator.saveModel = async (model, modelName, config) => {
  * @returns Configuration object
  */
 Predator.getConfig = (modelName, fallback) => {
-    const data = localStorage.getItem(`tfmodel/${modelName}`);
-    if (data) { console.log(`Model config ${modelName} found.`); } else { console.log(`Model config ${modelName} not found.`); }
-    return (data) ? JSON.parse(data) : fallback;
+    const data = localStorage.getItem(`predConfig/${modelName}`);
+    
+    if (data) { 
+        Predator.log(`Config for model '${modelName}' found.`);
+    } else {
+        Predator.log(`Config for model '${modelName}' not found.`);
+        
+        // If config was not found and no fallback is present, Predator can not continue.
+        if(!fallback) {
+            throw Predator.error(
+                'ConfigLookupFailure',
+                `Config for model '${modelName}' does not exist and no fallback was provided.`
+            );
+        } else {
+            Predator.log('Predator will use config fallback, since it is present.');
+        }
+    }
+    
+        return (data) ? JSON.parse(data) : fallback;
 }
 
 /**
@@ -521,7 +545,7 @@ Predator.genericPlot = (values, series, modelData, instance) => {
         featureName = config.system.params[0];
         labelName = config.system.params[1];
     } else {
-        feature = 'unknown'; label = 'unknown';
+        featureName = 'unknown'; labelName = 'unknown';
     }
 
     const name = `${featureName} and ${labelName} correlation (${modelName})`
@@ -531,6 +555,22 @@ Predator.genericPlot = (values, series, modelData, instance) => {
         { values, series },
         { xLabel: 'Square feet', yLabel: 'Price' }
     );
+}
+
+/**
+ * Log stylized message to console.
+ * 
+ * @param message - Message to display
+ * @param enabler - Injective boolean condition which can stop logs
+ */
+Predator.log = (message, enabler) => {
+    if (enabler !== false) {
+        console.log(`%c Predator %c log %c > ${message}`,
+            'background-color: #ff9933; color:black; font-size: 15px; border-radius: 5px; border-top-right-radius: 0; border-bottom-right-radius: 0;',
+            'background-color: #e67300; font-size: 15px; color: black; border-top-right-radius: 5px; border-bottom-right-radius: 5px;',
+            'background-color: none; color: white;'
+        );
+    }
 }
 
 /**
@@ -554,7 +594,8 @@ Predator.makeTensor = (points, shape) => {
 }
 
 /**
- * Generate dense layers based on tensor shape.
+ * Generate dense layers based on tensor shape. Layers are symmetric and
+ * share common functionality.
  * 
  * @param params - Parameters defining dense layers
  * @param tensorShapes - Shape of input tensor data
