@@ -122,7 +122,7 @@ const showBox = (modelName, target) => {
 
     if (!gid('draggable').className.includes('shown')) {
         gid('draggable').classList.add('shown');
-        gid('draggable').style.top = `${target.offsetTop + 40}px`;
+        gid('draggable').style.top = `${target.offsetTop - 216.5}px`;
         gid('draggable').style.left = `${target.offsetLeft}px`;
     }
 

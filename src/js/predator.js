@@ -462,7 +462,7 @@ Predator.adjustTensorShapes = (shape, points, saveTo) => {
  * @returns Saving result
  */
 Predator.saveModel = async (model, modelName, config) => {
-    localStorage.setItem(`predConfig/${modelName}`, JSON.stringify(config));
+    localStorage.setItem(`predator_config/${modelName}`, JSON.stringify(_config));
     return await model.save(`localstorage://${modelName}`);
 }
 
@@ -474,7 +474,7 @@ Predator.saveModel = async (model, modelName, config) => {
  * @returns Configuration object
  */
 Predator.getConfig = (modelName, fallback) => {
-    const data = localStorage.getItem(`predConfig/${modelName}`);
+    const data = localStorage.getItem(`predator_config/${modelName}`);
     
     if (data) { 
         Predator.log(`Config for model '${modelName}' found.`);
