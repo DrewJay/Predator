@@ -234,7 +234,7 @@ Predator.applyDefaults = (config) => {
     if (!neural.model) { config.neural.model = {}; }
     if (!neural.layers) { config.neural.layers = {}; }
 
-    if (!neural.model && !neural.layers) { 
+    if (Object.entries(neural.layers).length === 0 && Object.entries(neural.model).length === 0) { 
         Predator.log('Using default preset for standard regression task. Feel free to specify your configuration @ instance.config.'); 
     }
 
