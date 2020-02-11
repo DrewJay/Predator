@@ -235,7 +235,7 @@ Predator.applyDefaults = (config) => {
     if (!neural.layers) { config.neural.layers = {}; }
 
     if (!neural.model && !neural.layers) { 
-        console.warn('Using default preset for standard regression task. Feel free to specify your configuration @ instance.config.'); 
+        Predator.log('Using default preset for standard regression task. Feel free to specify your configuration @ instance.config.'); 
     }
 
     keys.forEach((value, idx) => {
@@ -492,7 +492,7 @@ Predator.getConfig = (modelName, fallback) => {
         }
     }
     
-        return (data) ? JSON.parse(data) : fallback;
+    return (data) ? JSON.parse(data) : fallback;
 }
 
 /**
@@ -565,10 +565,11 @@ Predator.genericPlot = (values, series, modelData, instance) => {
  */
 Predator.log = (message, enabler) => {
     if (enabler !== false) {
-        console.log(`%c Predator %c log %c > ${message}`,
-            'background-color: #ff9933; color:black; font-size: 15px; border-radius: 5px; border-top-right-radius: 0; border-bottom-right-radius: 0;',
-            'background-color: #e67300; font-size: 15px; color: black; border-top-right-radius: 5px; border-bottom-right-radius: 5px;',
-            'background-color: none; color: white;'
+        console.log(`%c Predator %c log %c >>>%c ${message}`,
+            'background-color: #ff9933; color:black; padding: 3px; font-size: 13px; border-radius: 5px; border-top-right-radius: 0; border-bottom-right-radius: 0;',
+            'background-color: #e67300; font-size: 13px; color: black; padding: 3px; border-top-right-radius: 5px; border-bottom-right-radius: 5px;',
+            'background-color: none; color: #e67300;',
+            'background-color: none; color: black;'
         );
     }
 }
