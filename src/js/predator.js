@@ -105,6 +105,7 @@ const Predator = function(config) {
 
     /**
      * Attempt to make a prediction.
+     * Should be used in try/catch block.
      * 
      * @param values - Feature values
      * @param modelData - Object containing model name or model itself. Can either be:
@@ -114,6 +115,15 @@ const Predator = function(config) {
      * @returns Predicted x value
      */
     this.predict = async (values, modelData = {}) => {
+
+        // Validate the input.
+        if (!Predator.inputValidator(values)) {
+            throw Predator.error(
+                'IncorrectInputType',
+                'One of input values has incorrect type.'
+            );
+        }
+
         let model = await Predator.unpackModel(modelData);
         
         if (!model && this.config.generated.latestModel) { 
@@ -125,9 +135,10 @@ const Predator = function(config) {
         await this.aggregateState(model.modelName, this);
 
         const paramLen = Array.isArray(this.config.system.params[0]) ? this.config.system.params[0].length : 1;
+        
         if (paramLen !== values.length) {
             throw Predator.error(
-                'badinput',
+                'Badinput',
                 `Model "${model.modelName}" expects ${paramLen} inputs but got ${values.length}.`
             );
         }
@@ -165,6 +176,9 @@ const Predator = function(config) {
      * @param name - Model name to save
      */
     this.session = async (name) => {
+
+        // Acknowledge the session start.
+        Predator.log('Trainig in progress...');
 
         // Reset tensorCache.
         this.tensorCache = [];
@@ -213,6 +227,9 @@ const Predator = function(config) {
         if (this.config.system.visual) {
             tfvis.render.barchart({ name: 'Test vs Train' }, [{ index: 'Test', value: testLoss }, { index: 'Train', value: trainLoss }]);
         }
+
+        // Acknowledge session end.
+        Predator.log('Training finished.');
 
         return model;
     }
@@ -462,7 +479,13 @@ Predator.adjustTensorShapes = (shape, points, saveTo) => {
  * @returns Saving result
  */
 Predator.saveModel = async (model, modelName, config) => {
-    localStorage.setItem(`predator_config/${modelName}`, JSON.stringify(_config));
+    // 1.) latestModel is large object with large amount of unserializable content
+    // 2.) Saving loss has no point at all
+    let reducedConfig = JSON.parse(JSON.stringify(config));
+    delete reducedConfig.generated.latestModel;
+    delete reducedConfig.generated.loss;
+
+    localStorage.setItem(`predator_config/${modelName}`, JSON.stringify(reducedConfig));
     return await model.save(`localstorage://${modelName}`);
 }
 
@@ -572,6 +595,16 @@ Predator.log = (message, enabler) => {
             'background-color: none; color: black;'
         );
     }
+}
+
+/**
+ * Check if all array members are valid Predator inputs.
+ * 
+ * @param input - Array input
+ * @returns Flag if input is valid type
+ */
+Predator.inputValidator = (input) => {
+    return input.every(val => !isNaN(val));
 }
 
 /**

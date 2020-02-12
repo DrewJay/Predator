@@ -9,7 +9,7 @@ Predator is a machine learning tool built on the top of TensorFlow.js, that sign
 Predator saves time, and implies cleaner code. You can train accurate neural network models using oneliners, or custommize the training process using any of many configurations available. People with lack of knowledge of neural network mechanisms can create well working models as well, since the API is very intuitive and clear.
 
 ## Some examples
-### Basic level
+### House price prediction - The Hello World of machine learning universe
 We use predator instances to train and use neural network models. This would be the simplest way to initialize predator instance:
 ```
 const pred = new Predator({
