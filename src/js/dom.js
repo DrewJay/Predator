@@ -75,7 +75,7 @@ const listModels = async() => {
 const renderModel = async() => {
     const modelName = prompt('Choose a model:');
     toggleLoad();
-    await pred.mergePlot({ name: modelName, noModelCallback: () => { gid('display').innerHTML = `Model does not exist.`; } }, true, true, pred);
+    await pred.mergePlot(true, true, { name: modelName, noModelCallback: () => { gid('display').innerHTML = `Model does not exist.`; } });
     toggleLoad();
 }
 

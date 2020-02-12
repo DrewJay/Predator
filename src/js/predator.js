@@ -41,12 +41,28 @@ const Predator = function(config) {
     /**
      * Combine multiple generic plots.
      * 
-     * @param modelData - Object containing model name or model itself
      * @param shouldAggregate - If should simulate synthetic state
      * @param shouldPredict - If should render prediction line
+     * @param modelData - Object containing model name or model itself
      */
-    this.mergePlot = async (modelData, shouldAggregate, shouldPredict) => {
+    this.mergePlot = async (shouldAggregate, shouldPredict, modelData) => {
 
+        // Sometimes we need state aggregation with persistent configuration.
+        let configPersistence = false;
+
+        // Use instance configuration for rendering.
+        if (!modelData && this.config.generated.latestModel) { 
+            modelData = { model: this.config.generated.latestModel };
+            configPersistence = true;
+
+        // No instance configuration available means problems.
+        } else if (!modelData) {
+            return Predator.error(
+                'NoInstanceConfiguration',
+                'Predator instance has to train a model first before it can render anonymous merge plot.'
+            );
+        }
+        
         if (!this.config.system.visual) { return false; }
         if (!tfvis.visor().isOpen()) { tfvis.visor().toggle(); }
 
@@ -55,9 +71,12 @@ const Predator = function(config) {
         
         if (shouldAggregate) {
             if (model) {
-                await this.aggregateState(model.modelName, this);
+                await this.aggregateState(model.modelName, this, configPersistence);
             } else {
-                return false;
+                return Predator.error(
+                    'NoAggregationModel',
+                    'No model could be retrieved for aggregation.'
+                );
             }
         }
 
@@ -70,7 +89,7 @@ const Predator = function(config) {
             seriesArrays.push('predicted');
         }
 
-        Predator.genericPlot([this.points, predictedPoints], ['original', 'predicted'], modelData, this);
+        await Predator.genericPlot([this.points, predictedPoints], ['original', 'predicted'], modelData, this);
     }
 
     /**
@@ -115,7 +134,7 @@ const Predator = function(config) {
      * @returns Predicted x value
      */
     this.predict = async (values, modelData = {}) => {
-
+        
         // Validate the input.
         if (!Predator.inputValidator(values)) {
             throw Predator.error(
@@ -126,10 +145,14 @@ const Predator = function(config) {
 
         let model = await Predator.unpackModel(modelData);
         
+        // Attempt to fall back for the latest model in use during this session.
         if (!model && this.config.generated.latestModel) { 
             model = this.config.generated.latestModel; 
         } else if (!model) {
-            return false;
+            throw Predator.error(
+                'NoModelAvailable',
+                'No model was found for this prediction.'
+            );
         }
         
         await this.aggregateState(model.modelName, this);
@@ -150,13 +173,14 @@ const Predator = function(config) {
     }
 
     /**
-     * Aggregate particular training state so
-     * we can use features it produces in process.
+     * Aggregate particular Predator instance configuration based on
+     * tensorflow model that was previously trained by the instance.
      * 
-     * @param modelName - If used, state is aggregated from saved model.
+     * @param modelName - If used, state is aggregated from saved model
+     * @param configPersistence - On rare occasions, we do not want to change config
      */
-    this.aggregateState = async (modelName) => {
-        this.config = Predator.getConfig(modelName, this.config);
+    this.aggregateState = async (modelName, configPersistence) => {
+        this.config = (configPersistence) ? this.config : Predator.getConfig(modelName, this.config);
 
         // Solution for legacy models, which had no two-dimensional tensorshapes.
         if (!Array.isArray(this.config.neural.layers.tensorShapes[0])) { 
@@ -222,7 +246,7 @@ const Predator = function(config) {
         this.config.generated.loss = { train: trainLoss, test: testLoss };
         
         // Plot the results.
-        await this.mergePlot({ model, name }, false, true);
+        await this.mergePlot(false, true, { model, name });
 
         if (this.config.system.visual) {
             tfvis.render.barchart({ name: 'Test vs Train' }, [{ index: 'Test', value: testLoss }, { index: 'Train', value: trainLoss }]);
@@ -560,7 +584,7 @@ Predator.unpackModel = async (modelData) => {
  * @param instance - Predator instance (optional)
  */
 Predator.genericPlot = (values, series, modelData, instance) => {
-    const modelName = (typeof modelData === 'string') ? modelData : (modelData.name || 'default');
+    const modelName = (typeof modelData === 'string') ? modelData : (modelData.name || 'anonymous');
     let featureName, labelName;
 
     if (instance) {
