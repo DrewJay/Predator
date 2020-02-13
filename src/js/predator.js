@@ -47,13 +47,10 @@ const Predator = function(config) {
      */
     this.mergePlot = async (shouldAggregate, shouldPredict, modelData) => {
 
-        // Sometimes we need state aggregation with persistent configuration.
-        let configPersistence = false;
-
         // Use instance configuration for rendering.
         if (!modelData && this.config.generated.latestModel) { 
             modelData = { model: this.config.generated.latestModel };
-            configPersistence = true;
+            shouldAggregate = false;
 
         // No instance configuration available means problems.
         } else if (!modelData) {
@@ -71,7 +68,7 @@ const Predator = function(config) {
         
         if (shouldAggregate) {
             if (model) {
-                await this.aggregateState(model.modelName, this, configPersistence);
+                await this.aggregateState(model.modelName, this);
             } else {
                 return Predator.error(
                     'NoAggregationModel',
@@ -177,10 +174,9 @@ const Predator = function(config) {
      * tensorflow model that was previously trained by the instance.
      * 
      * @param modelName - If used, state is aggregated from saved model
-     * @param configPersistence - On rare occasions, we do not want to change config
      */
-    this.aggregateState = async (modelName, configPersistence) => {
-        this.config = (configPersistence) ? this.config : Predator.getConfig(modelName, this.config);
+    this.aggregateState = async (modelName) => {
+        this.config = Predator.getConfig(modelName, this.config);
 
         // Solution for legacy models, which had no two-dimensional tensorshapes.
         if (!Array.isArray(this.config.neural.layers.tensorShapes[0])) { 
@@ -190,6 +186,8 @@ const Predator = function(config) {
         const params = this.config.system.params;
         this.points = await Predator.consumeCSV(this.config.system.csvPath, params);
         this.tensorCache = [];
+
+        // We don't need to use this, it just sets instance tensor cache.
         await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[0], this.points, 'x', this);
         await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[1], this.points, 'y', this);
     }
@@ -231,8 +229,8 @@ const Predator = function(config) {
 
         const trainResult = await Predator.train(model, this.config.neural.model.epochs, { trainFeatureTensor, trainLabelTensor }, this.config.system.visual);
         this.config.generated.latestModel = model;
-        this.config.generated.latestModel.modelName = name || 'anonymous';
-        
+        this.config.generated.latestModel.modelName = name || Predator.constants.modelFallbackName;
+
         // If name is set, save the model.
         if (name) {
             await Predator.saveModel(model, name, this.config);
@@ -584,7 +582,7 @@ Predator.unpackModel = async (modelData) => {
  * @param instance - Predator instance (optional)
  */
 Predator.genericPlot = (values, series, modelData, instance) => {
-    const modelName = (typeof modelData === 'string') ? modelData : (modelData.name || 'anonymous');
+    const modelName = (typeof modelData === 'string') ? modelData : (modelData.name || Predator.constants.modelFallbackName);
     let featureName, labelName;
 
     if (instance) {
@@ -592,7 +590,8 @@ Predator.genericPlot = (values, series, modelData, instance) => {
         featureName = config.system.params[0];
         labelName = config.system.params[1];
     } else {
-        featureName = 'unknown'; labelName = 'unknown';
+        featureName = Predator.constants.ioFallbackName;
+        labelName = Predator.constants.ioFallbackName;
     }
 
     const name = `${featureName} and ${labelName} correlation (${modelName})`
@@ -600,7 +599,7 @@ Predator.genericPlot = (values, series, modelData, instance) => {
     tfvis.render.scatterplot(
         { name },
         { values, series },
-        { xLabel: 'Square feet', yLabel: 'Price' }
+        { xLabel: featureName, yLabel: labelName }
     );
 }
 
@@ -619,6 +618,15 @@ Predator.log = (message, enabler) => {
             'background-color: none; color: black;'
         );
     }
+}
+
+/**
+ * Constants to be used anywhere in Predator constructor
+ * or particular instances.
+ */
+Predator.constants = {
+    modelFallbackName: 'Anonymous',
+    ioFallbackName: 'Unknown',
 }
 
 /**
