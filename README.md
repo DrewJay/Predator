@@ -84,3 +84,20 @@ All configurations available can be found below.
 <strong>*minimalShape = ```[[Predator.max(1), len(param[0])], [Predator.max(1), len(param[1])]]```</strong>
 
 <strong>*exampleShape = ```[[Predator.max(2), 2], [Predator.max(1), 1]]```</strong>
+
+## Good practices
+### Exception handling
+Almost every function Predator instance offers is asynchronous and can return specific error, which makes debugging easier. It is therefore good
+practice to surround sessions or predictions in try/catch block.
+
+```
+try {
+    await pred.session('myModel');
+} catch (PredatorException) {
+    console.log(PredatorException.message);
+    throw PredatorException;
+}
+```
+
+Throwing the exception is very useful, since it can be analyzed from developer's console. Errors are designed to be very descriptive and suggest
+solutions to specific problems, like tensor dimension adjustments.
