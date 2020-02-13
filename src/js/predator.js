@@ -39,8 +39,25 @@ const Predator = function(config) {
     this.points = [];
 
     /**
-     * Combine multiple generic plots.
-     * 
+     * Combine multiple generic plots. This method allows functionality
+     * that should never be used. Use case table of truth:
+     *
+     * +-------------------+---------------------------------------+
+     * | Param combination |                Use case               |
+     * |                   |                                       |
+     * |     F F model     | + Only latestModel csv                |
+     * |     F F string    | + Only latestModel csv                |
+     * |     F F null      | + Only latestModel csv                |
+     * |     F T model     | + Only model prediction line          |
+     * |     F T string    | + Only model prediction line          |
+     * |     F T null      | + latestModel csv + latestModel pred  | ✔ standard
+     * |     T F model     | + Only model csv                      |
+     * |     T F string    | + Only model csv                      |
+     * |     T F null      | + Only latestModel csv                |
+     * |     T T model     | + latestModel csv + model pred        |
+     * |     T T string    | + model csv + pred                    | ✔ standard
+     * |     T T null      | + latestModel csv + latestModel pred  |
+     * +-------------------+---------------------------------------+
      * @param shouldAggregate - If should simulate synthetic state
      * @param shouldPredict - If should render prediction line
      * @param modelData - Object containing model name or model itself
@@ -49,13 +66,18 @@ const Predator = function(config) {
 
         // Use instance configuration for rendering.
         if (!modelData && this.config.generated.latestModel) { 
-            modelData = { model: this.config.generated.latestModel };
-            shouldAggregate = false;
+            
+            // If model name is 'Anonymous', lookup would fail. So we will use model itself.
+            modelData = (this.config.generated.latestModel.modelName === Predator.constants.modelFallbackName) ?
+                { model: this.config.generated.latestModel } : 
+                this.config.generated.latestModel.modelName;
+            
+                shouldAggregate = false;
 
         // No instance configuration available means problems.
         } else if (!modelData) {
             return Predator.error(
-                'NoInstanceConfiguration',
+                'InstanceNotTrainedYet',
                 'Predator instance has to train a model first before it can render anonymous merge plot.'
             );
         }
@@ -64,11 +86,19 @@ const Predator = function(config) {
         if (!tfvis.visor().isOpen()) { tfvis.visor().toggle(); }
 
         const model = await Predator.unpackModel(modelData);
-        if (!model && shouldPredict) { return false; }
+        
+        // Can not predict without model.
+        if (!model && shouldPredict) {
+            return Predator.error(
+                'NoPredictionModel',
+                'No model could be retrieved for prediction.'
+            );            
+        }
         
         if (shouldAggregate) {
             if (model) {
                 await this.aggregateState(model.modelName, this);
+            // Can not aggregate without model.
             } else {
                 return Predator.error(
                     'NoAggregationModel',
@@ -81,7 +111,7 @@ const Predator = function(config) {
         const pointArrays = [this.points];
         const seriesArrays = ['original'];
 
-        if(predictedPoints) {
+        if (predictedPoints) {
             pointArrays.push(predictedPoints);
             seriesArrays.push('predicted');
         }
@@ -244,7 +274,7 @@ const Predator = function(config) {
         this.config.generated.loss = { train: trainLoss, test: testLoss };
         
         // Plot the results.
-        await this.mergePlot(false, true, { model, name });
+        await this.mergePlot(false, true);
 
         if (this.config.system.visual) {
             tfvis.render.barchart({ name: 'Test vs Train' }, [{ index: 'Test', value: testLoss }, { index: 'Train', value: trainLoss }]);
@@ -557,7 +587,8 @@ Predator.getModelByName = async (modelName) => {
 }
 
 /**
- * Retrieve model from model data object.
+ * Retrieve model from model data object. This function is main consumer
+ * of modelData used widely in app.
  * 
  * @param modelData - Object containing model information or stringified model name
  * @param noModelCallback - Function to execute if model was not found
@@ -652,7 +683,6 @@ Predator.inputValidator = (input) => {
  * @param points - Input points
  * @param shape - Tensor shape
  * @returns Tensor creating function
- * 
  */
 Predator.makeTensor = (points, shape) => {
     const builder = tf[`tensor${shape.length}d`];
@@ -668,26 +698,33 @@ Predator.makeTensor = (points, shape) => {
  * @returns Array of dense layers
  */
 Predator.symmetricDNNGenerator = ({ amount, units, bias, activation }, tensorShapes) => {
-    let layers = [];
-    
-    let shape = tensorShapes[0].slice(1, -1);
-    shape.push(units);
+    try {
+        let layers = [];
+        
+        let shape = tensorShapes[0].slice(1, -1);
+        shape.push(units);
 
-    for (let i = 0; i < amount; i++) {
-        if (i === 0) {
-            layers.push(
-                { units, useBias: bias, inputShape: tensorShapes[0].slice(1) }
-            );
-        } else if (i === amount - 1) {
-            layers.push(
-                { units: tensorShapes[1].slice(-1)[0], useBias: bias, activation: activation, inputShape: shape }
-            );
-        } else {
-            layers.push(
-                { units, useBias: bias, inputShape: shape }
-            );
+        for (let i = 0; i < amount; i++) {
+            if (i === 0) {
+                layers.push(
+                    { units, useBias: bias, inputShape: tensorShapes[0].slice(1) }
+                );
+            } else if (i === amount - 1) {
+                layers.push(
+                    { units: tensorShapes[1].slice(-1)[0], useBias: bias, activation: activation, inputShape: shape }
+                );
+            } else {
+                layers.push(
+                    { units, useBias: bias, inputShape: shape }
+                );
+            }
         }
-    }
 
-    return layers;
+        return layers;
+    } catch (exception) {
+        throw Predator.error(
+            'DNNGeneratorException',
+            `Symmetric DNN could not be generated. Please check your inputs.\n\nError message: ${exception.message}.`
+        );
+    }
 }
