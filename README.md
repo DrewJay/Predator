@@ -85,6 +85,8 @@ All configurations available can be found below.
 
 <strong>*exampleShape = ```[[Predator.max(2), 2], [Predator.max(1), 1]]```</strong>
 
+When session is finished, ```generated``` level is created in configuration where specific session-generated and training information are stored. 
+
 ## Good practices
 ### Exception handling
 Almost every function Predator instance offers is asynchronous and can return specific error, which makes debugging easier. It is therefore good
