@@ -27,6 +27,7 @@ const Predator = function(config) {
     // -> /
     //      + latestModel {model}
     //      + layers {array}
+    //      + performance {string}
     // -> loss
     //      + test {number}
     //      + train {number}
@@ -229,6 +230,9 @@ const Predator = function(config) {
      */
     this.session = async (name) => {
 
+        // Capture initial time.
+        const startTime = performance.now();
+
         // Acknowledge the session start.
         Predator.log('Trainig in progress...');
 
@@ -279,6 +283,9 @@ const Predator = function(config) {
         if (this.config.system.visual) {
             tfvis.render.barchart({ name: 'Test vs Train' }, [{ index: 'Test', value: testLoss }, { index: 'Train', value: trainLoss }]);
         }
+
+        // Calculate session time.
+        this.config.generated.performance = `${(Math.round(( (performance.now() - startTime) / 1000) * 100) / 100)}s`;
 
         // Acknowledge session end.
         Predator.log('Training finished.');
