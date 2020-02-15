@@ -38,11 +38,9 @@ const makeprediction = async (input) => {
     try {
         const result = await pred.predict(arrayized, { name: modelName });
         const html = result ? `For value <span class='input'>${arrayized.join('/')}</span> model <span class='name'>${modelName}</span> predicted result <span class='result'>${Math.floor(result)}</span>.` : `Model does not exist.`
-        gid('display').innerHTML = html;
-        gid('display').style.opacity = 1;
+        setDisplayValue(html);
     } catch (error) {
-        gid('display').innerHTML = `${error.name} - ${error.message}`;
-        gid('display').style.opacity = 1;
+        setDisplayValue(`${error.name} - ${error.message}`);
         throw error;
     } finally {
         toggleLoad();
@@ -68,8 +66,7 @@ const domTrain = async (modelName) => {
 const listModels = async() => {
     const models = await tf.io.listModels();
     const names = Object.keys(models).map((name, idx) => `<span class='model-${idx}'>${name.replace('localstorage://', '')}</span>`).join(', ') || 'none';
-    gid('display').innerHTML = `Available models: ${names}.`;
-    gid('display').style.opacity = 1;
+    setDisplayValue(`Available models: ${names}.`);
 };
 
 /**
@@ -78,8 +75,18 @@ const listModels = async() => {
 const renderModel = async() => {
     const modelName = prompt('Choose a model:');
     toggleLoad();
-    await pred.mergePlot(true, true, { name: modelName, noModelCallback: () => { gid('display').innerHTML = `Model does not exist.`; } });
+    await pred.mergePlot(true, true, { name: modelName, noModelCallback: () => { setDisplayValue(`Model does not exist.`); } });
     toggleLoad();
+}
+
+/**
+ * Set content value of display element.
+ *
+ * @param value - Value to set 
+ */
+const setDisplayValue = (value) => {
+    gid('display').innerHTML = value;
+    gid('display').style.opacity = 1;
 }
 
 /**
