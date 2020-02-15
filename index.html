@@ -14,6 +14,12 @@
 
         <style>
 
+            #wrapper {
+                margin: .5rem;
+                padding: 2rem;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            }
+
             .section > span {
                 display: block;
                 font-family: "Lucida Console", "Monaco", monospace;
@@ -23,7 +29,6 @@
                 padding: .3rem;
                 padding-left: 0;
                 font-size: 1.2rem;
-                border-radius: 5px;
             }
 
             input {
@@ -34,13 +39,12 @@
             input[type="button"] {
                 background: #ff9933; 
                 font-size: .7rem;
-                border: 3px solid #e67300;
+                border: 2px solid #e67300;
                 text-align: center;
                 height: 35px;
                 color: white;
                 box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
                 padding: .6rem 3rem;
-                border-radius: 5px;
                 cursor: pointer;
                 transition: background-color .3s;
             }
@@ -52,10 +56,9 @@
             input[type="text"] {
                 background: transparent;
                 font-size: .7rem;
-                height: 8px;
-                border: 4px dashed #ff9933;
+                height: 10px;
+                border: 2px dashed #ff9933;
                 padding: .6rem 1rem;
-                border-radius: 5px;
             }
 
             .mb-s {
@@ -83,12 +86,11 @@
 
             #display {
                 font-family: "Lucida Console", "Monaco", monospace;
+                margin-top: 1rem;
                 font-size: 1rem;
-                min-width: 200px;
-                padding: 1rem;
-                border: 2px solid #ff9933;
                 display: inline-block;
-                border-radius: 5px;
+                opacity: 0;
+                transition: opacity 1s;
             }
 
             #display > span.result {
@@ -122,20 +124,28 @@
                 z-index: 1;
             }
 
+            #actions [type='button'] {
+                margin-bottom: .3rem;
+            }
+
+            #train [type='text'], #predict [type='text'] {
+                margin-right: .3rem;
+            }
+
             #draggable {
                 position: absolute;
                 text-align: center;
-                max-height: 433px;
+                max-height: 300px;
                 overflow-y: auto;
                 min-width: 200px;
                 padding: 1rem;
-                border-radius: 5px;
                 cursor: grab;
                 height: auto;
-                border: 2px solid #e67300;
+                border: 2px dashed #e67300;
                 box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-                background: #ff9933;
+                background: rgba(255, 153, 51, .9);
                 font-family: "Lucida Console", "Monaco", monospace;
+                font-size: .8rem;
                 color: white;
                 user-select: none;
                 transform: rotate3d(1, 1, 1, 120deg);
@@ -160,7 +170,6 @@
                 color: #994d00;
                 margin-bottom: .3rem;
                 font-weight: bold;
-                border-radius: 5px;
                 padding: .2rem;
                 text-decoration: underline;
             }
@@ -177,28 +186,30 @@
             <br/>
             <br/>
 
-            <div id="train" class="section mb-s">
-                <span>Train</span>
-                <input type="text" id="mname" placeholder="Model Name">
-                <input type="button" value="Train" onClick="domTrain(gid('mname').value)">
-            </div>
+            <div id='wrapper'>
+                <div id="train" class="section mb-s">
+                    <span>Train</span>
+                    <input type="text" id="mname" placeholder="Model Name">
+                    <input type="button" value="Train" onClick="domTrain(gid('mname').value)">
+                </div>
 
-            <div id="predict" class="section mb-s">
-                <span>Predict</span>
-                <input type="text" id="predinput" placeholder="Value">
-                <input type="button" value="Predict Value" onClick="makeprediction(gid('predinput').value)">
-            </div>
+                <div id="predict" class="section mb-s">
+                    <span>Predict</span>
+                    <input type="text" id="predinput" placeholder="Value">
+                    <input type="button" value="Predict Value" onClick="makeprediction(gid('predinput').value)">
+                </div>
 
-            <div class="section mb-s">
-                <span>Actions</span>
-                <input type="button" class="mb-b" value="Render Model" onClick="renderModel()">
-                <input type="button" class="mb-b block" value="Toggle Visor" onClick="tfvis.visor().toggle()">
-                <input type="button" class="mb-b block" value="List Models" onClick="listModels()">
-                <input type="button" class="block" value="Session Info" onClick="alert(JSON.stringify(pred.config))">
-            </div>
+                <div id="actions" class="section">
+                    <span>Actions</span>
+                    <input type="button" class="mb-b" value="Render Model" onClick="renderModel()">
+                    <input type="button" class="mb-b block" value="Toggle Visor" onClick="tfvis.visor().toggle()">
+                    <input type="button" class="mb-b block" value="List Models" onClick="listModels()">
+                    <input type="button" class="block" value="Session Info" onClick="alert(JSON.stringify(pred.config))">
+                </div>
 
-            <div id="display"></div>
-            <div id="draggable"></div>
+                <div id="display"></div>
+                <div id="draggable"></div>
+            </div>
         </main>
 
         <img id="loader" src="img/loader.gif">

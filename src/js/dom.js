@@ -39,8 +39,10 @@ const makeprediction = async (input) => {
         const result = await pred.predict(arrayized, { name: modelName });
         const html = result ? `For value <span class='input'>${arrayized.join('/')}</span> model <span class='name'>${modelName}</span> predicted result <span class='result'>${Math.floor(result)}</span>.` : `Model does not exist.`
         gid('display').innerHTML = html;
+        gid('display').style.opacity = 1;
     } catch (error) {
         gid('display').innerHTML = `${error.name} - ${error.message}`;
+        gid('display').style.opacity = 1;
         throw error;
     } finally {
         toggleLoad();
@@ -67,6 +69,7 @@ const listModels = async() => {
     const models = await tf.io.listModels();
     const names = Object.keys(models).map((name, idx) => `<span class='model-${idx}'>${name.replace('localstorage://', '')}</span>`).join(', ') || 'none';
     gid('display').innerHTML = `Available models: ${names}.`;
+    gid('display').style.opacity = 1;
 };
 
 /**
@@ -123,7 +126,7 @@ const showBox = (modelName, target) => {
 
     if (!gid('draggable').className.includes('shown')) {
         gid('draggable').classList.add('shown');
-        gid('draggable').style.top = `${target.offsetTop - 216.5}px`;
+        gid('draggable').style.top = `${target.offsetTop - 150}px`;
         gid('draggable').style.left = `${target.offsetLeft}px`;
     }
 
