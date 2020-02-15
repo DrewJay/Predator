@@ -57,7 +57,7 @@
                 background: transparent;
                 font-size: .7rem;
                 height: 10px;
-                border: 2px dashed #ff9933;
+                border: 2px dashed #e67300;
                 padding: .6rem 1rem;
             }
 
@@ -222,7 +222,8 @@
                         epochs: 1,
                     },
                     layers: {
-                        tensorShapes: [[Predator.max(1), 1], [Predator.max(1), 1]]
+                        tensorShapes: [[Predator.max(1), 1], [Predator.max(1), 1]],
+                        activation: 'linear',
                     },
                 },
                 system: {

@@ -98,7 +98,7 @@ const Predator = function(config) {
         
         if (shouldAggregate) {
             if (model) {
-                await this.aggregateState(model.modelName, this);
+                await this.predatorInstanceSnapshot(model.modelName, this);
             // Can not aggregate without model.
             } else {
                 return Predator.error(
@@ -161,8 +161,11 @@ const Predator = function(config) {
      *                    3.) Contain model name
      * @returns Predicted x value
      */
-    this.predict = async (values, modelData = {}) => {
-        
+    this.predict = async (values, modelData) => {
+
+        // By default, aggregation is on.
+        let shouldAggregate = true;
+
         // Validate the input.
         if (!Predator.inputValidator(values)) {
             throw Predator.error(
@@ -170,20 +173,28 @@ const Predator = function(config) {
                 'One of input values has incorrect type.'
             );
         }
-
-        let model = await Predator.unpackModel(modelData);
         
-        // Attempt to fall back for the latest model in use during this session.
-        if (!model && this.config.generated.latestModel) { 
-            model = this.config.generated.latestModel; 
-        } else if (!model) {
+        // Attempt to fall back for the latestModel in use during this session.
+        if (this.config.generated.latestModel && (!modelData || this.config.generated.latestModel.modelName === modelData.name)) {
+            modelData = this.config.generated.latestModel.modelName;
+            shouldAggregate = false;
+        }
+
+        // Load the model.
+        let model = await Predator.unpackModel(modelData);
+
+        // Model was not found.
+        if (model === false) {
             throw Predator.error(
                 'NoModelAvailable',
                 'No model was found for this prediction.'
-            );
+            ); 
         }
-        
-        await this.aggregateState(model.modelName, this);
+    
+        // Only if prediction is not bound to current instance.
+        if (shouldAggregate) {
+            await this.predatorInstanceSnapshot(model.modelName, this);
+        }
 
         const paramLen = Array.isArray(this.config.system.params[0]) ? this.config.system.params[0].length : 1;
         
@@ -206,8 +217,15 @@ const Predator = function(config) {
      * 
      * @param modelName - If used, state is aggregated from saved model
      */
-    this.aggregateState = async (modelName) => {
+    this.predatorInstanceSnapshot = async (modelName) => {
+
+        // Aggregation is not needed at times.
+        if (this.config.generated.latestModel && this.config.generated.latestModel.modelName === modelName) { return true; }
+
         this.config = Predator.getConfig(modelName, this.config);
+
+        // Set the latestModel variable.
+        this.config.generated.latestModel = await Predator.unpackModel(modelName);
 
         // Solution for legacy models, which had no two-dimensional tensorshapes.
         if (!Array.isArray(this.config.neural.layers.tensorShapes[0])) { 
@@ -675,6 +693,14 @@ Predator.constants = {
  */
 Predator.inputValidator = (input) => {
     return input.every(val => !isNaN(val));
+}
+
+/**
+ * Fetch and return array of saved model names from local storage.
+ */
+Predator.savedModels = async () => {
+    const models = await tf.io.listModels();
+    return Object.keys(models).map((name) => name.replace('localstorage://', ''));
 }
 
 /**
