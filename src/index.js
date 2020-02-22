@@ -16,12 +16,12 @@ const toggleLoad = () => {
 
     if (opacity == 1) {
         gid('loader').style.opacity = 0;
-        gid('main').style.opacity = 1;
-        gid('main').style.pointerEvents = 'inherit';
+        gid('wrapper').style.opacity = 1;
+        gid('wrapper').style.pointerEvents = 'inherit';
     } else {
         gid('loader').style.opacity = 1;
-        gid('main').style.opacity = .5;
-        gid('main').style.pointerEvents = 'none';
+        gid('wrapper').style.opacity = .5;
+        gid('wrapper').style.pointerEvents = 'none';
     }
 }
 

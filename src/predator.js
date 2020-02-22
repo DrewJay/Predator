@@ -99,7 +99,7 @@ const Predator = function(config) {
         
         if (shouldAggregate) {
             if (model) {
-                await this.predatorInstanceSnapshot(model.modelName, this);
+                await this.predatorInstanceSnapshot(model.modelName);
             // Can not aggregate without model.
             } else {
                 return Predator.error(
@@ -109,7 +109,7 @@ const Predator = function(config) {
             }
         }
 
-        const predictedPoints = (shouldPredict) ? await this.generatePredictionPoints({ model }, this) : [];
+        const predictedPoints = (shouldPredict) ? await this.generatePredictionPoints({ model }) : [];
         const pointArrays = [this.points];
         const seriesArrays = ['original'];
 
@@ -194,7 +194,7 @@ const Predator = function(config) {
     
         // Only if prediction is not bound to current instance.
         if (shouldAggregate) {
-            await this.predatorInstanceSnapshot(model.modelName, this);
+            await this.predatorInstanceSnapshot(model.modelName);
         }
 
         const paramLen = Array.isArray(this.config.system.params[0]) ? this.config.system.params[0].length : 1;
