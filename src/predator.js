@@ -9,7 +9,7 @@ const Predator = function(config) {
     // -> neural/model:
     //      + epochs {number} @ 10
     //      + loss {string} @ 'meanSquaredError'
-    //      + optimizer {string} 'adam'
+    //      + optimizer {string} @ 'adam'
     //      + ttSplit {number} @ 2
     // -> neural/layers:
     //      + bias {boolean} @ true
@@ -17,6 +17,7 @@ const Predator = function(config) {
     //      + amount {number} @ 3
     //      + nodes {number} @ 10
     //      + tensorShapes {array}{array} @ [[max(1), len(param[0])], [max(1), len(param[1])]]
+    //      + override {array}
     // -> system:
     //      + visual {boolean} @ false
     //      + params {array}{array|string}
@@ -269,10 +270,12 @@ const Predator = function(config) {
               [trainLabelTensor, testLabelTensor] = tf.split(labelTensor, this.config.neural.model.ttSplit);
         
         // Create tsfjs model and train it.
-        const layers = Predator.symmetricDNNGenerator(
-            { amount: this.config.neural.layers.amount, units: this.config.neural.layers.nodes, bias: this.config.neural.layers.bias, activation: this.config.neural.layers.activation },
-            this.config.neural.layers.tensorShapes
-        );
+        const layers = this.config.neural.layers.override ||
+            Predator.symmetricDNNGenerator(
+                { amount: this.config.neural.layers.amount, units: this.config.neural.layers.nodes, bias: this.config.neural.layers.bias, activation: this.config.neural.layers.activation },
+                this.config.neural.layers.tensorShapes
+            );
+
         this.config.generated.layers = layers;
 
         const model = Predator.createModel(

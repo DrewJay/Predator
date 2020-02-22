@@ -81,6 +81,7 @@ All configurations available can be found below.
 | amount        | layers    | number                | 3                 | amount: 5             | amount of layers (includes input and output layers)
 | nodes         | layers    | number                | 10                | nodes: 16             | nodes per layer (excludes output layer)
 | tensorShapes  | layers    | array[][]             | minimalShape*     | exampleShape*         | Custom tensor dimensions
+| override      | layers    | array[]               |                   | override: [{}, ...]   | Custom array defining layers (see tensorflowJs API)
 | visual        | system    | boolean               | false             | visual: true          | Display training statistics
 | params        | system    | array[][] or array[]  |                   | params: ['a', 'b']    | Predict csv field 'b' based on field 'a'
 | csvPath       | system    | string                |                   | csvPath: '../file.csv'|
