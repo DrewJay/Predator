@@ -243,7 +243,7 @@ const Predator = function(config) {
         if (turboCache !== true) {
             this.points = await Predator.consumeCSV(this.config.system.csvPath, params);
         } else {
-            this.points = JSON.parse(localStorage.getItem(`predator/bigdata/${modelName}`));
+            this.points = JSON.parse(localStorage.getItem(`${Predator.constants.bigDataPath}/${modelName}`));
         }
         this.tensorCache = [];
 
@@ -576,7 +576,7 @@ Predator.saveModel = async (model, modelName, data, config) => {
     delete reducedConfig.generated.latestModel;
     delete reducedConfig.generated.loss;
 
-    localStorage.setItem(`predator/config/${modelName}`, JSON.stringify(reducedConfig));
+    localStorage.setItem(`${Predator.constants.configPath}/${modelName}`, JSON.stringify(reducedConfig));
     localStorage.setItem(`predator/bigdata/${modelName}`, JSON.stringify(data));
     return await model.save(`localstorage://${modelName}`);
 }
@@ -589,7 +589,7 @@ Predator.saveModel = async (model, modelName, data, config) => {
  * @returns Configuration object
  */
 Predator.getConfig = (modelName, fallback) => {
-    const data = localStorage.getItem(`predator/config/${modelName}`);
+    const data = localStorage.getItem(`${Predator.constants.configPath}/${modelName}`);
     
     if (data) { 
         Predator.log(`Config for model '${modelName}' found.`);
@@ -698,6 +698,8 @@ Predator.log = (message, enabler) => {
 Predator.constants = {
     modelFallbackName: 'Anonymous',
     ioFallbackName: 'Unknown',
+    bigDataPath: 'predator/bigdata',
+    configPath: 'predator/config',
 }
 
 /**
