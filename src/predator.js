@@ -253,7 +253,7 @@ const Predator = function(config) {
     }
 
     /**
-     * Run training session. NO
+     * Run training session.
      * 
      * @param name - Model name to save
      */

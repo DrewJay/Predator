@@ -7,10 +7,10 @@ Predator is a machine learning tool built on the top of TensorFlow.js, that sign
 
 
 ## Note
-Project itself is stored in <a href="https://github.com/DrewJay/predator/blob/master/src/js/predator.js">src/js</a> folder. This repository is simple webpack server, because predator needs to be served to be able to read CSV files.
+Project itself is stored in <a href="https://github.com/DrewJay/predator/blob/master/src/predator.js">src/js</a> folder. This repository is simple webpack server, because predator needs to be served to be able to read CSV files.
 
 ## Why would I use this?
-Predator saves time, and implies cleaner code. You can train accurate neural network models using oneliners, or custommize the training process using any of many configurations available. People with lack of knowledge of neural network mechanisms can create well working models as well, since the API is very intuitive and clear.
+Predator saves time and implies cleaner code. You can train accurate neural network models using oneliners, or custommize the training process using any of many configurations available. People with lack of knowledge of neural network mechanisms can create well working models as well, since the API is very intuitive and clear.
 
 ## Some examples
 ### House price prediction - The Hello World of machine learning universe
