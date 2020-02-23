@@ -99,7 +99,7 @@ const Predator = function(config) {
         
         if (shouldAggregate) {
             if (model) {
-                await this.predatorInstanceSnapshot(model.modelName);
+                await this.applyPredatorInstanceSnapshot(model.modelName, true);
             // Can not aggregate without model.
             } else {
                 return Predator.error(
@@ -194,7 +194,7 @@ const Predator = function(config) {
     
         // Only if prediction is not bound to current instance.
         if (shouldAggregate) {
-            await this.predatorInstanceSnapshot(model.modelName);
+            await this.applyPredatorInstanceSnapshot(model.modelName, true);
         }
 
         const paramLen = Array.isArray(this.config.system.params[0]) ? this.config.system.params[0].length : 1;
@@ -217,8 +217,14 @@ const Predator = function(config) {
      * tensorflow model that was previously trained by the instance.
      * 
      * @param modelName - If used, state is aggregated from saved model
+     * @param turboCache - When building snapshot from configuration, the
+     * process is very slow, because CSV file needs to be parsed again. This
+     * happens due to the fact that we need to recreate tensorCache and for
+     * this the min() and max() functions requiring actual dataset are used.
+     * turboCache allows to fetch dataset from localStorage instead of direct
+     * CSV parsing, which is super fast.
      */
-    this.predatorInstanceSnapshot = async (modelName) => {
+    this.applyPredatorInstanceSnapshot = async (modelName, turboCache) => {
 
         // Aggregation is not needed at times.
         if (this.config.generated.latestModel && this.config.generated.latestModel.modelName === modelName) { return true; }
@@ -234,7 +240,11 @@ const Predator = function(config) {
         }
         
         const params = this.config.system.params;
-        this.points = await Predator.consumeCSV(this.config.system.csvPath, params);
+        if (turboCache !== true) {
+            this.points = await Predator.consumeCSV(this.config.system.csvPath, params);
+        } else {
+            this.points = JSON.parse(localStorage.getItem(`predator/bigdata/${modelName}`));
+        }
         this.tensorCache = [];
 
         // We don't need to use this, it just sets instance tensor cache.
@@ -288,7 +298,7 @@ const Predator = function(config) {
 
         // If name is set, save the model.
         if (name) {
-            await Predator.saveModel(model, name, this.config);
+            await Predator.saveModel(model, name, this.points, this.config);
         }
 
         // Calculate test and train loss.
@@ -555,17 +565,19 @@ Predator.adjustTensorShapes = (shape, points, saveTo) => {
  * 
  * @param model - Tsfjs model reference 
  * @param modelName - Model name
+ * @param data - Additional data to save
  * @param config - Predator configuration
  * @returns Saving result
  */
-Predator.saveModel = async (model, modelName, config) => {
+Predator.saveModel = async (model, modelName, data, config) => {
     // 1.) latestModel is large object with large amount of unserializable content
     // 2.) Saving loss has no point at all
     let reducedConfig = JSON.parse(JSON.stringify(config));
     delete reducedConfig.generated.latestModel;
     delete reducedConfig.generated.loss;
 
-    localStorage.setItem(`predator_config/${modelName}`, JSON.stringify(reducedConfig));
+    localStorage.setItem(`predator/config/${modelName}`, JSON.stringify(reducedConfig));
+    localStorage.setItem(`predator/bigdata/${modelName}`, JSON.stringify(data));
     return await model.save(`localstorage://${modelName}`);
 }
 
@@ -577,7 +589,7 @@ Predator.saveModel = async (model, modelName, config) => {
  * @returns Configuration object
  */
 Predator.getConfig = (modelName, fallback) => {
-    const data = localStorage.getItem(`predator_config/${modelName}`);
+    const data = localStorage.getItem(`predator/config/${modelName}`);
     
     if (data) { 
         Predator.log(`Config for model '${modelName}' found.`);

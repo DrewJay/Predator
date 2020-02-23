@@ -1,0 +1,7 @@
+Predator version 1.0.1
+
+Description:
+Greatly improved prediction performance using caching during recreating snapshots (see turboCache flag in applyPredatorInstanceSnapshot).
+
+Todos:
+The need of actual dataset during prediction is categorically wrong. This happens because we can not normalize tensors without training dataset. This should be eliminated in the future, for example by recreating min() and max() functions so they can operate over arrays.
