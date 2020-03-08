@@ -2,9 +2,8 @@
   <img width="350" src="https://raw.githubusercontent.com/DrewJay/predator/master/img/logo_pred.png">
 </p>
 
-# Predator
+# Predator v1.0.1 'Puma'
 Predator is a machine learning tool built on the top of TensorFlow.js, that significantly simplifies predictions (also called regression tasks). It is capable of doing simple regressions, multivariate regressions, linear or nonlinear, simplified model saving and retrieving and model performance visualizations (uses tfvis internally).
-
 
 ## Note
 Project itself is stored in <a href="https://github.com/DrewJay/predator/blob/master/src/predator.js">src/js</a> folder. This repository is simple webpack server, because predator needs to be served to be able to read CSV files.

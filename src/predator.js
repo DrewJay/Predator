@@ -275,6 +275,16 @@ const Predator = function(config) {
         const featureTensor = await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[0], this.points, 'x', this),
               labelTensor = await Predator.tensorFromArray(this.config.neural.layers.tensorShapes[1], this.points, 'y', this);
 
+        // Normalization is complicated. Give user some information.
+        this.config.generated.normalized = {
+            was: true,
+            with: Predator.constants.normalizationDefault,
+            sample: {
+                original: this.points.splice(0, 3).map(item => item.x).flat(),
+                normal: (await featureTensor.array()).splice(0, 3).flat(),
+            },
+        };
+
         // Test-train split.
         const [trainFeatureTensor, testFeatureTensor] = tf.split(featureTensor, this.config.neural.model.ttSplit),
               [trainLabelTensor, testLabelTensor] = tf.split(labelTensor, this.config.neural.model.ttSplit);
@@ -694,6 +704,11 @@ Predator.log = (message, enabler) => {
 }
 
 /**
+ * Predator version indicator. Stable version equals recommended.
+ */
+Predator.version = "v1.0.1 'Puma' stable";
+
+/**
  * Constants to be used anywhere in Predator constructor
  * or particular instances.
  */
@@ -702,6 +717,7 @@ Predator.constants = {
     ioFallbackName: 'Unknown',
     bigDataPath: 'predator/bigdata',
     configPath: 'predator/config',
+    normalizationDefault: 'Predator.normalizeTensor',
 }
 
 /**

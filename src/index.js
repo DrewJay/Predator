@@ -37,7 +37,7 @@ const makeprediction = async (input) => {
 
     try {
         const result = await pred.predict(arrayized, { name: modelName });
-        const html = result ? `For value <span class='input'>${arrayized.join('/')}</span> model <span class='name'>${modelName}</span> predicted result <span class='result'>${Math.floor(result)}</span>.` : `Model does not exist.`
+        const html = result ? `For value <span class='input'>${arrayized.join('/')}</span> model <span class='name'>${modelName}</span> predicted result <span class='result'>${result}</span>.` : `Model does not exist.`
         setDisplayValue(html);
     } catch (error) {
         setDisplayValue(`${error.name} - ${error.message}`);
