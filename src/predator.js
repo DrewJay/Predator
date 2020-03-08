@@ -706,7 +706,7 @@ Predator.log = (message, enabler) => {
 /**
  * Predator version indicator. Stable version equals recommended.
  */
-Predator.version = "v1.0.1 'Puma' stable";
+Predator.version = "v1.0.1 'Wild Ox' stable";
 
 /**
  * Constants to be used anywhere in Predator constructor
