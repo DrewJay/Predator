@@ -238,13 +238,14 @@ const Predator = function(config) {
         if (!Array.isArray(this.config.neural.layers.tensorShapes[0])) { 
             this.config.neural.layers.tensorShapes = [this.config.neural.layers.tensorShapes, this.config.neural.layers.tensorShapes]; 
         }
-        
+
         const params = this.config.system.params;
         if (turboCache !== true) {
             this.points = await Predator.consumeCSV(this.config.system.csvPath, params);
         } else {
             this.points = JSON.parse(localStorage.getItem(`${Predator.constants.bigDataPath}/${modelName}`));
         }
+
         this.tensorCache = [];
 
         // We don't need to use this, it just sets instance tensor cache.
@@ -280,8 +281,8 @@ const Predator = function(config) {
             was: true,
             with: Predator.constants.normalizationDefault,
             sample: {
-                original: this.points.splice(0, 3).map(item => item.x).flat(),
-                normal: (await featureTensor.array()).splice(0, 3).flat(),
+                original: this.points.slice(0, 3).map(item => item.x).flat(),
+                normal: (await featureTensor.array()).slice(0, 3).flat(),
             },
         };
 
