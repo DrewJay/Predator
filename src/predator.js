@@ -348,8 +348,8 @@ Predator.applyDefaults = (config) => {
     const defaults = [10, 'meanSquaredError', 'adam', 2, true, 'sigmoid', 3, 10, [[Predator.max(1), Predator.paramLength(params[0])], [Predator.max(1), Predator.paramLength(params[1])]]];
 
     if (!neural) { config.neural = {}; neural = {}; }
-    if (!neural.model) { config.neural.model = {}; }
-    if (!neural.layers) { config.neural.layers = {}; }
+    if (!neural.model) { config.neural.model = {}; neural.model = {}; }
+    if (!neural.layers) { config.neural.layers = {}; neural.layers = {}; }
 
     if (Object.entries(neural.layers).length === 0 && Object.entries(neural.model).length === 0) { 
         Predator.log('Using default preset for standard regression task. Feel free to specify your configuration @ instance.config.'); 
