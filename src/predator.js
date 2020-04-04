@@ -98,13 +98,13 @@ const Predator = function(config) {
         }
         
         if (shouldAggregate) {
-            if (model) {
+            if (model || !model.modelName) {
                 await this.applyPredatorInstanceSnapshot(model.modelName, true);
             // Can not aggregate without model.
             } else {
                 return Predator.error(
                     'NoAggregationModel',
-                    'No model could be retrieved for aggregation.'
+                    'No model could be retrieved for aggregation, or model was found but has no name.'
                 );
             }
         }
