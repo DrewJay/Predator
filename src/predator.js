@@ -98,7 +98,7 @@ const Predator = function(config) {
         }
         
         if (shouldAggregate) {
-            if (model || !model.modelName) {
+            if (model && model.modelName) {
                 await this.applyPredatorInstanceSnapshot(model.modelName, true);
             // Can not aggregate without model.
             } else {
@@ -608,7 +608,7 @@ Predator.getConfig = (modelName, fallback) => {
         Predator.log(`Config for model '${modelName}' not found.`);
         
         // If config was not found and no fallback is present, Predator can not continue.
-        if(!fallback) {
+        if (!fallback) {
             throw Predator.error(
                 'ConfigLookupFailure',
                 `Config for model '${modelName}' does not exist and no fallback was provided.`
