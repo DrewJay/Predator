@@ -65,7 +65,6 @@ const Predator = function(config) {
      * @param modelData - Object containing model name or model itself
      */
     this.mergePlot = async (shouldAggregate, shouldPredict, modelData) => {
-
         // Use instance configuration for rendering.
         if (!modelData && this.config.generated.latestModel) { 
             
@@ -163,7 +162,6 @@ const Predator = function(config) {
      * @returns Predicted x value
      */
     this.predict = async (values, modelData) => {
-
         // By default, aggregation is on.
         let shouldAggregate = true;
 
@@ -225,7 +223,6 @@ const Predator = function(config) {
      * CSV parsing, which is super fast.
      */
     this.applyPredatorInstanceSnapshot = async (modelName, turboCache) => {
-
         // Aggregation is not needed at times.
         if (this.config.generated.latestModel && this.config.generated.latestModel.modelName === modelName) { return true; }
 
@@ -259,7 +256,6 @@ const Predator = function(config) {
      * @param name - Model name to save
      */
     this.session = async (name) => {
-
         // Capture initial time.
         const startTime = performance.now();
 
@@ -468,7 +464,6 @@ Predator.createModel = (layers, optimizerName, loss) => {
  * @returns Training data
  */
 Predator.train = async (model, epochs, { trainFeatureTensor, trainLabelTensor }, showProgress = false) => {
-    
     let callbacks = {};
 
     if (showProgress) {
