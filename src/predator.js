@@ -4,7 +4,6 @@
  * creation. Based on tensorflow js.
  */
 const Predator = function(config) {
-
     // << Launch configuration cheat sheet >>
     // -> neural/model:
     //      + epochs {number} @ 10
