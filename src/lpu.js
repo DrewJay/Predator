@@ -88,7 +88,7 @@ LPU.possibleCompound = (word) => {
         }
     }
     return false;
-}
+};
 
 /**
  * Group word chunks into multiple word groups based on
@@ -113,7 +113,7 @@ LPU.makeWordGroups = (chunks) => {
     }
 
     return groups;
-}
+};
 
 /**
  * Determines if word is a verb and if it is what kind
@@ -131,7 +131,7 @@ LPU.determineVerbType = (word) => {
         }
     }
     return undefined;
-}
+};
 
 /**
  * Find subject of parsing in configuration objects,
@@ -153,7 +153,7 @@ LPU.semanticPOI = (data) => {
     }
 
     return result.flat();
-}
+};
 
 /**
  * Primary method utilizing LPU parsing capabilities
