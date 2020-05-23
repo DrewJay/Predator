@@ -36,6 +36,7 @@ const LPU = function() {
                     resultTuple.push([chunks[i + chainOffset + 1], chunks[i + chainOffset + 2]]);
                 break;
                 case 'symbolic':
+                    resultTuple.push([chunks[i - 1], chunks[i + chainOffset + 1]]);
                 break;
                 default: break;
             }
@@ -50,11 +51,24 @@ const LPU = function() {
  */
 LPU.vocabulary = {
     verbs: {
-        centric: ['is', 'will be', 'would be', 'could be'],
-        leading: ['will have', 'could have', 'would have'],
+        leading: ['will have', 'could have', 'would have', 'could use', 'would use', 'could be using'],
+        centric: ['is', 'will be', 'would be', 'could be', 'is named', 'to'],
         symbolic: ['=', ':', '<>'],
     },
-    compounds: ['activation function'],
+    compounds: [
+        // System names.
+        'activation function',
+        'neural network',
+        'system configuration',
+
+        // Property names.
+        'visual property',
+        'params property',
+        'csvpath property',
+
+        // Misc names.
+        'as follows',
+    ],
 };
 
 /**
@@ -69,7 +83,7 @@ LPU.possibleCompound = (word) => {
     let comps = LPU.vocabulary.compounds;
 
     for (let comp of comps) {
-        if (comp.includes(word) && comp !== word) {
+        if (comp.includes(word.toLowerCase()) && comp !== word.toLowerCase()) {
             return true;
         }
     }
@@ -139,4 +153,51 @@ LPU.semanticPOI = (data) => {
     }
 
     return result.flat();
+}
+
+/**
+ * Primary method utilizing LPU parsing capabilities
+ * and generating configuration from words.
+ *
+ * @param description - Describe your neural network
+ * @param injectOnFailure - When parsing values fails, store the information
+ *                          configuration file itself.
+ * @param consumer - Configuration consumer.
+ * @returns Usable configuration object or result of consuming
+ */
+const useWords = (description, consumer, injectOnFailure = true) => {
+    const lpu = new LPU();
+    const tuples = lpu.parse(description);
+
+    // Currently symplified version, only supports system configuration layer.
+    let resultConfiguration = { system: {} };
+    let evidenceIndex = -1;
+
+    for (let tuple of tuples) {
+        evidenceIndex += 1;
+
+        let key = null;
+        let value = null;
+
+        if (tuple[0].includes('property')) {
+            try {
+                key = tuple[0].split(' ')[0];
+                value = tuple[1];
+
+                resultConfiguration.system[key] = value;
+            } catch (ConfigurationCraftingException) {
+                if (injectOnFailure) {
+                    resultConfiguration[`lpu::craftingexception::${evidenceIndex}`] = tuple;
+                }
+                continue;
+            }
+        }
+    }
+
+    // Either construct consumer or return configuration itself.
+    if (consumer) {
+        return new consumer(resultConfiguration);
+    } else {
+        return resultConfiguration;
+    }
 }
