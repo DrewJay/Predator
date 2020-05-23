@@ -23,7 +23,7 @@ const pred = new Predator({
                 },
             });
 ```
-We define system configuration, <strong>`visual`</strong> says that any training performed by <i>pred</i> instance should be graphically displayed, <strong>`params`</strong> specify what particular field we want to read from CSV file (in this case, we will train network to predict <i>price</i> field based on <i>sqft_living</i> field) and <strong>`csvPath`</strong> just specifies path to CSV file relative to predator.js file.
+We define system configuration, ```visual``` says that any training performed by <i>pred</i> instance should be graphically displayed, ```params``` specify what particular field we want to read from CSV file (in this case, we will train network to predict <i>price</i> field based on <i>sqft_living</i> field) and ```csvPath``` just specifies path to CSV file relative to predator.js file.
 
 That's all, we are ready to train now!
 
@@ -31,7 +31,7 @@ Training is super easy:
 ```
 const myModel = await pred.session('myModel');
 ```
-That's it. Your model will be ready when training is finished. Model will also be saved as 'myModel' to local storage, as first parameter of <strong>session</strong> specifies. It can also be left out empty, no need to save anything.
+That's it. Your model will be ready when training is finished. Model will also be saved as 'myModel' to local storage, as first parameter of ```session``` specifies. It can also be left out empty, no need to save anything.
 
 Prediction is super easy as well:
 ```
