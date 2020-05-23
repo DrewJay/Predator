@@ -41,6 +41,16 @@ We tell Predator to use input value <i>1500</i> (living square feet, remember?) 
 
 Second parameter of <strong>predict</strong> can also contain key <i>name</i>, which specifies the model name of model stored in local storage. Therefore using ```{name: 'myModel'}```, ```{model: myModel}```, or  ```'myModel'``` would work the same. And that's why single Predator instance can use models trained by other instances and easily engage the prediction.
 
+### 🦄 Use words (Experimental) 🦄
+Predator also comes with another interesting way to describe your neural network - using fluent english text. Built-in Language Processing Unit (LPU) takes care of basic language parsing and is able to recognize
+user demands up to particular extent. This would be completely legit way to define neural network in predator:
+
+```
+useWords("System configuration will be as follows -> set visual property to true, params property could be ['x','y'] and it would have csvpath property '../csv/dataset.csv'", Predator)
+```
+
+Second parameter of ```useWords``` is called ```consumer```. It is constructor meant to consume generated configuration. If omitted - the generated configuration itself is returned.
+
 ### A little more to know
 This example used barely any constructor configurations. There are many options you can optimize the network with, but they can also be omitted and automatically defaulted. For example if you omit loss function, it defaults to <i>meanSquaredError</i>, or if you omit activation function, it defaults to <i>sigmoid</i>.
 
