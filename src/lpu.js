@@ -200,4 +200,4 @@ const useWords = (description, consumer, injectOnFailure = true) => {
     } else {
         return resultConfiguration;
     }
-}
+};
