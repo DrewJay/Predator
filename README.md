@@ -6,7 +6,7 @@
 Predator is a machine learning tool built on the top of TensorFlow.js, that significantly simplifies predictions (also called regression tasks). It is capable of doing simple regressions, multivariate regressions, linear or nonlinear, simplified model saving and retrieving and model performance visualizations (uses tfvis internally).
 
 ## Note
-Predator has to be used on running server like webpack, since major browsers' security policies do not allow to read files from serverless scripts. Predator needs this functionality to read CSV files.
+Predator has to be used on running server like webpack, since major browser's security policies do not allow to read files from serverless scripts. Predator needs this functionality to read CSV files.
 
 ## Why would I use this?
 Predator saves time and implies cleaner code. You can train accurate neural network models using oneliners, or custommize the training process using any of many configurations available. People with lack of knowledge of neural network mechanisms can create well working models as well, since the API is very intuitive and clear.
