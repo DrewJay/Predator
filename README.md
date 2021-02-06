@@ -16,12 +16,12 @@ Predator saves time and implies cleaner code. You can train accurate neural netw
 We use predator instances to train and use neural network models. This would be the simplest way to initialize predator instance:
 ```
 const pred = new Predator({
-                system: {
-                    visual: true,
-                    params: ['sqft_living', 'price'],
-                    csvPath: `../csv/dataset.csv`,
-                },
-            });
+    system: {
+        visual: true,
+        params: ['sqft_living', 'price'],
+        csvPath: `../csv/dataset.csv`,
+    },
+});
 ```
 We define system configuration, ```visual``` says that any training performed by <i>pred</i> instance should be graphically displayed, ```params``` specify what particular field we want to read from CSV file (in this case, we will train network to predict <i>price</i> field based on <i>sqft_living</i> field) and ```csvPath``` just specifies path to CSV file relative to predator.js file.
 
