@@ -57,23 +57,23 @@ This example used barely any constructor configurations. There are many options 
 We use <strong>neural</strong> configuration to apply specific behavior on our neural networks:
 ```
 const pred = new Predator({
-                neural: {
-                    model: {
-                        epochs: 20,        // We will use 20 epochs for training.
-                        optimizer: 'sgd',  // Optimizer will be stochastic gradient descent.
-                    },
-                    layers: {
-                        bias: true,        // Each layer will use bias. 
-                        amount: 10,        // We will use 10 layers in total (including input and output layer).
-                        nodes: 6,          // 6 nodes per layer will be present.
-                    },
-                },
-                system: {
-                    visual: true,
-                    params: ['sqft_living', 'price'],
-                    csvPath: `../csv/dataset.csv`,
-                },
-            });
+    neural: {
+        model: {
+            epochs: 20,        // We will use 20 epochs for training.
+            optimizer: 'sgd',  // Optimizer will be stochastic gradient descent.
+        },
+        layers: {
+            bias: true,        // Each layer will use bias. 
+            amount: 10,        // We will use 10 layers in total (including input and output layer).
+            nodes: 6,          // 6 nodes per layer will be present.
+        },
+    },
+    system: {
+        visual: true,
+        params: ['sqft_living', 'price'],
+        csvPath: `../csv/dataset.csv`,
+    },
+});
 ```
 All configurations available can be found below.
 
