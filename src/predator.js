@@ -59,9 +59,9 @@ const Predator = function(config) {
      * |     T T string    | + model csv + pred                    | ✔ standard
      * |     T T null      | + latestModel csv + latestModel pred  |
      * +-------------------+---------------------------------------+
-     * @param shouldAggregate - If should simulate synthetic state
-     * @param shouldPredict - If should render prediction line
-     * @param modelData - Object containing model name or model itself
+     * @param shouldAggregate - If should simulate synthetic state.
+     * @param shouldPredict - If should render prediction line.
+     * @param modelData - Object containing model name or model itself.
      */
     this.mergePlot = async (shouldAggregate, shouldPredict, modelData) => {
         // Use instance configuration for rendering.
@@ -122,8 +122,8 @@ const Predator = function(config) {
     /**
      * Generate prediction points that form a line.
      * 
-     * @param modelData - Object containing model name or model itself
-     * @returns Array of points
+     * @param modelData - Object containing model name or model itself.
+     * @returns Array of points.
      */
     this.generatePredictionPoints = async (modelData) => {
         const model = await Predator.unpackModel(modelData) || this.config.generated.latestModel;
@@ -153,12 +153,12 @@ const Predator = function(config) {
      * Attempt to make a prediction.
      * Should be used in try/catch block.
      * 
-     * @param values - Feature values
+     * @param values - Feature values.
      * @param modelData - Object containing model name or model itself. Can either be:
-     *                    1.) Left out empty to use latest model trained by instance
-     *                    2.) Contain named or unnamed model object
-     *                    3.) Contain model name
-     * @returns Predicted x value
+     *                    1.) Left out empty to use latest model trained by instance.
+     *                    2.) Contain named or unnamed model object.
+     *                    3.) Contain model name.
+     * @returns Predicted x value.
      */
     this.predict = async (values, modelData) => {
         // By default, aggregation is on.
@@ -213,7 +213,7 @@ const Predator = function(config) {
      * Aggregate particular Predator instance configuration based on
      * tensorflow model that was previously trained by the instance.
      * 
-     * @param modelName - If used, state is aggregated from saved model
+     * @param modelName - If used, state is aggregated from saved model.
      * @param turboCache - When building snapshot from configuration, the
      * process is very slow, because CSV file needs to be parsed again. This
      * happens due to the fact that we need to recreate tensorCache and for
@@ -252,7 +252,7 @@ const Predator = function(config) {
     /**
      * Run training session.
      * 
-     * @param name - Model name to save
+     * @param name - Model name to save.
      */
     this.session = async (name) => {
         // Capture initial time.
@@ -334,8 +334,8 @@ const Predator = function(config) {
 /**
  * Apply default values to missing configurations.
  * 
- * @param config - Current configuration object
- * @returns New configuration object
+ * @param config - Current configuration object.
+ * @returns New configuration object.
  */
 Predator.applyDefaults = (config) => {
     let neural = config.neural;
@@ -364,9 +364,9 @@ Predator.applyDefaults = (config) => {
 /**
  * Create new predator error.
  * 
- * @param name - Error name
- * @param text - Error text
- * @returns New error
+ * @param name - Error name.
+ * @param text - Error text.
+ * @returns New error.
  */
 Predator.error = (name, text) => {
     let err = new Error(text);
@@ -377,8 +377,8 @@ Predator.error = (name, text) => {
 /**
  * Get length of params, wheter it's array or a string.
  * 
- * @param param - Subject param
- * @returns Length
+ * @param param - Subject param.
+ * @returns Length.
  */
 Predator.paramLength = (param) => {
     if (Array.isArray(param)) {
@@ -391,8 +391,8 @@ Predator.paramLength = (param) => {
 /**
  * Return length of an input.
  * 
- * @param divide - Divisor
- * @returns Object containing operation information
+ * @param divide - Divisor.
+ * @returns Object containing operation information.
  */
 Predator.max = (divide = 1) => {
     return {
@@ -405,9 +405,9 @@ Predator.max = (divide = 1) => {
 /**
  * Normalize tensor values (downscaling).
  * 
- * @param tensor - Tensor object
- * @param override - Use min and max from this overriding tensor
- * @returns Normalized tensor
+ * @param tensor - Tensor object.
+ * @param override - Use min and max from this overriding tensor.
+ * @returns Normalized tensor.
  */
 Predator.normalizeTensor = (tensor, override) => {
     const min = (override) ? override.min() : tensor.min();
@@ -418,9 +418,9 @@ Predator.normalizeTensor = (tensor, override) => {
 /**
  * Denormalize tensor values (upscaling).
  * 
- * @param tensor - Tensor object
- * @param override - Use min and max from this overriding tensor
- * @returns Denormalized tensor
+ * @param tensor - Tensor object.
+ * @param override - Use min and max from this overriding tensor.
+ * @returns Denormalized tensor.
  */
 Predator.denormalizeTensor = (tensor, override) => {
     const min = (override) ? override.min() : tensor.min();
@@ -431,10 +431,10 @@ Predator.denormalizeTensor = (tensor, override) => {
 /**
  * Create tsfjs model used for training and testing.
  * 
- * @param layers - Array of objects defining layers
- * @param optimizerName - String name of optimizer function
- * @param loss - Name of a loss function
- * @returns Compiled tsfjs model
+ * @param layers - Array of objects defining layers.
+ * @param optimizerName - String name of optimizer function.
+ * @param loss - Name of a loss function.
+ * @returns Compiled tsfjs model.
  */
 Predator.createModel = (layers, optimizerName, loss) => {
     const model = tf.sequential();
@@ -456,11 +456,11 @@ Predator.createModel = (layers, optimizerName, loss) => {
 /**
  * Engage model training phase.
  * 
- * @param model - Tsfjs model reference
- * @param epochs - Amount of epochs
- * @param tensors - Feature and label tensors
- * @param showProgess - Visually show training progress
- * @returns Training data
+ * @param model - Tsfjs model reference.
+ * @param epochs - Amount of epochs.
+ * @param tensors - Feature and label tensors.
+ * @param showProgess - Visually show training progress.
+ * @returns Training data.
  */
 Predator.train = async (model, epochs, { trainFeatureTensor, trainLabelTensor }, showProgress = false) => {
     let callbacks = {};
@@ -482,9 +482,9 @@ Predator.train = async (model, epochs, { trainFeatureTensor, trainLabelTensor },
 /**
  * Read CSV from gived URL.
  * 
- * @param url - Path to CSV
- * @param params - If present, override local params
- * @returns Array-ized CSV data
+ * @param url - Path to CSV.
+ * @param params - If present, override local params.
+ * @returns Array-ized CSV data.
  */
 Predator.consumeCSV = async (url, params) => {
     const data = tf.data.csv(url);
@@ -505,9 +505,9 @@ Predator.consumeCSV = async (url, params) => {
  * Spread CSV record fields to form single array
  * with keys and values.
  * 
- * @param record - CSV row
- * @param params - Searched parameters
- * @returns Array of values
+ * @param record - CSV row.
+ * @param params - Searched parameters.
+ * @returns Array of values.
  */
 Predator.spreadRecordFields = (record, params) => {
     let values = [];
@@ -524,11 +524,11 @@ Predator.spreadRecordFields = (record, params) => {
 /**
  * Create tsfjs Tensor object from array.
  * 
- * @param shape - Shape of the tensor
- * @param arr - Input array of objects 
- * @param field - Field name we seek in object
- * @param instance - Predator instance (optional)
- * @returns Tsfjs Tensor object
+ * @param shape - Shape of the tensor.
+ * @param arr - Input array of objects.
+ * @param field - Field name we seek in object.
+ * @param instance - Predator instance (optional).
+ * @returns Tsfjs Tensor object.
  */
 Predator.tensorFromArray = async (shape, arr, field, instance) => {
     instance.shapeIndex = (field === 'x') ? 0 : 1;
@@ -548,10 +548,10 @@ Predator.tensorFromArray = async (shape, arr, field, instance) => {
 /**
  * Adjust tensor dimensions.
  * 
- * @param shape - Tensor shape
- * @param points - Reference points array
- * @param saveTo - Instance where to save modifying parameters
- * @returns Adjusted tensor shape
+ * @param shape - Tensor shape.
+ * @param points - Reference points array.
+ * @param saveTo - Instance where to save modifying parameters.
+ * @returns Adjusted tensor shape.
  */
 Predator.adjustTensorShapes = (shape, points, saveTo) => {
     saveTo.config.generated.adjusted = saveTo.config.generated.adjusted || [];
@@ -568,11 +568,11 @@ Predator.adjustTensorShapes = (shape, points, saveTo) => {
 /**
  * Save tsfjs model into local storage.
  * 
- * @param model - Tsfjs model reference 
- * @param modelName - Model name
- * @param data - Additional data to save
- * @param config - Predator configuration
- * @returns Saving result
+ * @param model - Tsfjs model reference .
+ * @param modelName - Model name.
+ * @param data - Additional data to save.
+ * @param config - Predator configuration.
+ * @returns Saving result.
  */
 Predator.saveModel = async (model, modelName, data, config) => {
     // 1.) latestModel is large object with large amount of unserializable content
@@ -589,9 +589,9 @@ Predator.saveModel = async (model, modelName, data, config) => {
 /**
  * Attempt to retrieve model training configuration.
  * 
- * @param modelName - Name of a model
- * @param fallback - Fallback config
- * @returns Configuration object
+ * @param modelName - Name of a model.
+ * @param fallback - Fallback config.
+ * @returns Configuration object.
  */
 Predator.getConfig = (modelName, fallback) => {
     const data = localStorage.getItem(`${Predator.constants.configPath}/${modelName}`);
@@ -618,8 +618,8 @@ Predator.getConfig = (modelName, fallback) => {
 /**
  * Get model from localstorage by name.
  * 
- * @param modelName - Name of the model
- * @returns Tsfjs model reference
+ * @param modelName - Name of the model.
+ * @returns Tsfjs model reference.
  */
 Predator.getModelByName = async (modelName) => {
     const modelInfo = (await tf.io.listModels())[`localstorage://${modelName}`];
@@ -635,9 +635,9 @@ Predator.getModelByName = async (modelName) => {
  * Retrieve model from model data object. This function is main consumer
  * of modelData used widely in app.
  * 
- * @param modelData - Object containing model information or stringified model name
- * @param noModelCallback - Function to execute if model was not found
- * @returns Tensorflow model
+ * @param modelData - Object containing model information or stringified model name.
+ * @param noModelCallback - Function to execute if model was not found.
+ * @returns Tensorflow model.
  */
 Predator.unpackModel = async (modelData) => {
     if (!modelData) {
@@ -654,10 +654,10 @@ Predator.unpackModel = async (modelData) => {
 /**
  * Plot data to scatter plot.
  * 
- * @param values - Array of values to plot
- * @param series - Array of series to apply
- * @param modelData - Object containing model info
- * @param instance - Predator instance (optional)
+ * @param values - Array of values to plot.
+ * @param series - Array of series to apply.
+ * @param modelData - Object containing model info.
+ * @param instance - Predator instance (optional).
  */
 Predator.genericPlot = (values, series, modelData, instance) => {
     const modelName = (typeof modelData === 'string') ? modelData : (modelData.name || Predator.constants.modelFallbackName);
@@ -684,8 +684,8 @@ Predator.genericPlot = (values, series, modelData, instance) => {
 /**
  * Log stylized message to console.
  * 
- * @param message - Message to display
- * @param enabler - Injective boolean condition which can stop logs
+ * @param message - Message to display.
+ * @param enabler - Injective boolean condition which can stop logs.
  */
 Predator.log = (message, enabler) => {
     if (enabler !== false) {
@@ -718,8 +718,8 @@ Predator.constants = {
 /**
  * Check if all array members are valid Predator inputs.
  * 
- * @param input - Array input
- * @returns Flag if input is valid type
+ * @param input - Array input.
+ * @returns Flag if input is valid type.
  */
 Predator.inputValidator = (input) => {
     return input.every(val => !isNaN(val));
@@ -743,9 +743,9 @@ Predator.savedModels = async () => {
  * If input data tensor is defined as for example 3d (e.g [9, 3, 2]), results tensor has to be
  * 3d as well, with matching leftover dimensions ([, 3, 2]).
  * 
- * @param points - Input points
- * @param shape - Tensor shape
- * @returns Tensor creating function
+ * @param points - Input points.
+ * @param shape - Tensor shape.
+ * @returns Tensor creating function.
  */
 Predator.makeTensor = (points, shape) => {
     const builder = tf[`tensor${shape.length}d`];
@@ -756,9 +756,9 @@ Predator.makeTensor = (points, shape) => {
  * Generate dense layers based on tensor shape. Layers are symmetric and
  * share common functionality.
  * 
- * @param params - Parameters defining dense layers
- * @param tensorShapes - Shape of input tensor data
- * @returns Array of dense layers
+ * @param params - Parameters defining dense layers.
+ * @param tensorShapes - Shape of input tensor data.
+ * @returns Array of dense layers.
  */
 Predator.symmetricDNNGenerator = ({ amount, units, bias, activation }, tensorShapes) => {
     try {
