@@ -198,7 +198,7 @@ const Predator = function(config) {
         
         if (paramLen !== values.length) {
             throw Predator.error(
-                'Badinput',
+                'BadInput',
                 `Model "${model.modelName}" expects ${paramLen} inputs but got ${values.length}.`
             );
         }
