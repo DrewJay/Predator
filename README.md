@@ -3,7 +3,7 @@
 </p>
 
 # Predator v1.0.1 'Wild Ox 🐂'
-Predator is a machine learning tool built on the top of TensorFlow.js, that significantly simplifies predictions (also called regression tasks). It is capable of doing simple regressions, multivariate regressions, linear or nonlinear, simplified model saving and retrieving and model performance visualizations (uses tfvis internally).
+Predator is a machine learning tool built on the top of TensorFlow.js, that significantly simplifies regression tasks. It is capable of doing simple regressions, multivariate regressions, linear or nonlinear, simplified model saving and retrieving and model performance visualizations (uses tfvis internally).
 
 ## Note
 Predator has to be used on running server like webpack, since major browser's security policies do not allow to read files from serverless scripts. Predator needs this functionality to read CSV files.
