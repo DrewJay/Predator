@@ -12,7 +12,7 @@ Predator has to be used on running server like webpack, since major browser's se
 Predator saves time and implies cleaner code. You can train accurate neural network models using oneliners, or customize the training process using any of many configurations available. People with lack of knowledge of neural network mechanisms can create well working models as well, since the API is very intuitive and clear.
 
 ## Some examples
-### House price prediction - The Hello World of machine learning universe
+### House price prediction - The "Hello World" of machine learning universe
 We use predator instances to train and use neural network models. This would be the simplest way to initialize predator instance:
 ```
 const pred = new Predator({
